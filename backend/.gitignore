@@ -1,0 +1,10 @@
+.env
+
+/build
+/node_modules
+/local
+/docs
+/drizzle
+/logs
+
+*.old

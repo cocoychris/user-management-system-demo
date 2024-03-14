@@ -1,0 +1,14 @@
+{
+  "extends": "./node_modules/gts/tsconfig-google.json",
+  "compilerOptions": {
+    "skipLibCheck": true, // Needed for drizzle ORM. This is to prevent the error of not finding some of the sql drivers libraries (such as sqlite3, mysql, etc.) which we do not use in this project.
+    "esModuleInterop": true,
+    "rootDir": ".",
+    "outDir": "build"
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.d.ts",
+    "test/**/*.ts"
+  ]
+}

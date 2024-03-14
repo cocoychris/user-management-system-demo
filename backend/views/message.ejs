@@ -1,0 +1,110 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <% const validTypes = ['success', 'error', 'inform'];
+    if(!validTypes.includes(type)) { throw new Error('Invalid message type'); }
+    %>
+    <title><%= title %></title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+      }
+      footer {
+        text-align: center;
+        background-color: #3295ff;
+        padding: 10px 10px;
+        color: #fff;
+        width: 100%;
+        font-size: 16px;
+        position: fixed;
+        bottom: 0;
+      }
+      h1 {
+        font-size: 36px;
+        margin-top: 20px;
+      }
+      h2 {
+        font-size: 24px;
+        margin-top: 40px;
+      }
+      button {
+        margin-top: 30px;
+        padding: 10px 20px;
+        font-size: 18px;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: filter 0.25s;
+      }
+      button:hover {
+        filter: brightness(1.2);
+      }
+      button:active {
+        filter: brightness(0.8);
+      }
+      .success {
+        color: #0a0;
+      }
+      .error {
+        color: #c00;
+      }
+      .inform {
+        color: #0069d9;
+      }
+      div.content {
+        max-width: 600px;
+        margin: 30px auto 20px auto;
+        padding: 40px 20px;
+        text-align: center;
+        border: 2px solid #7ebdff;
+        border-radius: 20px;
+      }
+      .details {
+        font-size: 24px;
+        text-align: left;
+        margin-top: 30px;
+        margin-bottom: 20px;
+      }
+      .summary {
+        font-size: 28px;
+        font-weight: bold;
+        text-align: center;
+        color: #666666;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="content">
+      <h1 class="<%= type %>"><%= title %></h1>
+      <div class="details">
+        <% if(details){ %>
+        <details>
+          <summary class="summary"><%= summary %></summary>
+          <p>
+            Technical details:<br />
+            <%= details %>
+          </p>
+        </details>
+        <% }else{ %>
+        <div class="summary"><%= summary %></div>
+        <% } %>
+      </div>
+      <button
+        onclick="window.location
+        .href='<%= buttonUrl %>'"
+      >
+        <%= buttonText %>
+      </button>
+    </div>
+    <footer>
+      <p>
+        User Management System (Demo) - Developed by
+        <a href="https://andrash.dev/page/about_andrash">Andrash Yang</a>
+      </p>
+    </footer>
+  </body>
+</html>
