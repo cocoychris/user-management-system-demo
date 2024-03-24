@@ -1,83 +1,47 @@
-import bcrypt from 'bcrypt';
 /**
- * Service for user operations and management.
+ * @fileoverview
+ * This file contains the service functions for user management.
+ * Which includes creating, updating, and getting user profiles.
  * @module
  */
 
+import bcrypt from 'bcrypt';
 import {db} from '../utils/database';
 import {appLogger} from '../utils/logger';
 import {AuthStrategy, InsertUser, SelectUser, users} from '../models/userModel';
-import {eq, count, gte} from 'drizzle-orm';
+import {eq, count, gte, and} from 'drizzle-orm';
 import {env} from '../globalVars';
+import {UserProfile} from '../schema/userSchema';
 
 const logger = appLogger.child({module: 'userService'});
 /**
- * The user profile is the data that is sent to the client,
- * which is a subset of the `SelectUser` type.
- * @openapi
- * components:
- *   schemas:
- *     UserProfile:
- *       type: object
- *       properties:
- *         id:
- *           type: integer
- *           description: The user ID.
- *         name:
- *           type: string
- *           description: The user's name.
- *         email:
- *           type: string
- *           description: The user's email.
- *         isEmailVerified:
- *           type: boolean
- *           description: Whether the user's email is verified.
- *         createdAt:
- *           type: string
- *           format: date-time
- *           description: The time when the user was created.
- *         lastActiveAt:
- *           type: string
- *           format: date-time
- *           description: The time when the user was last active.
- *         loginCount:
- *           type: integer
- *           description: The number of times the user has logged in.
- *       required:
- *         - id
- *         - name
- *         - email
- *         - isEmailVerified
- *         - createdAt
- *         - lastActiveAt
- *         - loginCount
- */
-export type UserProfile = Pick<
-  SelectUser,
-  | 'id'
-  | 'name'
-  | 'email'
-  | 'isEmailVerified'
-  | 'createdAt'
-  | 'lastActiveAt'
-  | 'loginCount'
->;
-/**
  * Create a new user in the database and return the created user.
+ * If the `authStrategy` is `local`, the `password` is required.
+ * If the `authStrategy` is not `local`, the `externalId` is required.
  */
 export async function createUser(options: {
   name: string;
   email: string;
-  password: string;
+  password?: string;
   authStrategy: AuthStrategy;
+  externalId?: string;
 }): Promise<SelectUser> {
+  if (options.authStrategy === AuthStrategy.LOCAL && !options.password) {
+    throw new Error('Password is required for local strategy');
+  }
+  if (options.authStrategy !== AuthStrategy.LOCAL && !options.externalId) {
+    throw new Error('External ID is required for non-local strategy');
+  }
+  const passwordHash =
+    options.password && (await bcrypt.hash(options.password, env.SALT_ROUNDS));
   const user: InsertUser = {
     name: options.name,
     email: options.email,
-    passwordHash: await bcrypt.hash(options.password, env.SALT_ROUNDS),
+    passwordHash,
     authStrategy: options.authStrategy,
+    externalId: options.externalId,
     isEmailVerified: options.authStrategy === AuthStrategy.LOCAL ? false : true,
-    createdAt: undefined,
+    createdAt: new Date(),
     lastActiveAt: undefined,
     loginCount: undefined,
   };
@@ -89,16 +53,33 @@ export async function createUser(options: {
 }
 
 /**
- * Get the user by ID.
+ * Find the user by the ID
+ * Returns null if the user is not found.
  */
-export async function getUser(userId: number): Promise<SelectUser> {
+export async function findUserById(userId: number): Promise<SelectUser | null> {
   const user: SelectUser | undefined = await db.query.users.findFirst({
     where: eq(users.id, userId),
   });
-  if (!user) {
-    throw new Error(`User not found with ID: ${userId}`);
+  return user || null;
+}
+/**
+ * Find the user by the external ID and authentication strategy.
+ * Returns null if the user is not found.
+ */
+export async function findUserByExternalId(
+  authStrategy: AuthStrategy,
+  externalId: string
+): Promise<SelectUser | null> {
+  if (authStrategy === AuthStrategy.LOCAL) {
+    throw new Error('Cannot find external user with local strategy');
   }
-  return user;
+  const user: SelectUser | undefined = await db.query.users.findFirst({
+    where: and(
+      eq(users.authStrategy, authStrategy),
+      eq(users.externalId, externalId)
+    ),
+  });
+  return user || null;
 }
 /**
  * Extract the user profile from the user data.
@@ -110,7 +91,6 @@ export function toUserProfile(user: SelectUser): UserProfile {
     id: user.id,
     name: user.name,
     email: user.email,
-    isEmailVerified: user.isEmailVerified,
     createdAt: user.createdAt,
     lastActiveAt: user.lastActiveAt,
     loginCount: user.loginCount,

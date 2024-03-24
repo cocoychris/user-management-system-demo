@@ -1,20 +1,31 @@
 /**
- * Controller for the authentication routes.
+ * @fileoverview
+ * This file contains the controller for the authentication routes.
+ *
+ * Controllers are the end point middleware of a route.
+ * It implements the main business logic of the route,
+ * and is responsible for sending the response.
+ * @module
  */
+
 import {Request, Response, NextFunction} from 'express';
 import passport from 'passport';
-import {CLIENT_URL, env} from '../globalVars';
+import {env} from '../globalVars';
 import {SelectUser} from '../models/userModel';
-import {TokenPurpose} from '../models/authModel';
+import {TokenPurpose, SelectToken} from '../models/tokenModel';
 import {VerifyEmailRequest, verifyEmailReqSchema} from '../schema/authSchema';
-import {SelectToken} from '../models/authModel';
-import {createToken, validateToken} from '../services/tokenService';
+import {
+  createToken,
+  deleteTokensBy,
+  validateToken,
+} from '../services/tokenService';
 import {sendVerificationEmail, setEmailVerified} from '../services/authService';
 import {appLogger} from '../utils/logger';
-import {updateLastActive} from '../services/userService';
+import {toUserProfile, updateLastActive} from '../services/userService';
 import {assertIsError, zodErrorToMessage} from '../utils/error';
 import {ZodError} from 'zod';
 import {asyncCatch} from '../middleware';
+import {HttpError} from '../utils/HttpError';
 
 const logger = appLogger.child({module: 'authController'});
 /**
@@ -60,9 +71,19 @@ export const checkStatusReqHandler = asyncCatch(
  *           schema:
  *             type: object
  *             properties:
+ *               isAuthenticated:
+ *                 type: boolean
+ *                 description: Always true if the user is authenticated.
+ *                 example: true
  *               isEmailVerified:
  *                 type: boolean
  *                 description: Whether the user's email is verified.
+ *               userProfile:
+ *                 $ref: '#/components/schemas/UserProfile'
+ *             required:
+ *               - isAuthenticated
+ *               - isEmailVerified
+ *               - userProfile
  *     Login401Response:
  *       description: Unauthorized. User login failed.
  *       content:
@@ -75,7 +96,7 @@ export function loginReqHandler(
   res: Response,
   next: NextFunction
 ) {
-  const callback = (
+  const onAuthenticated = (
     error: Error,
     user: SelectUser,
     info: {message: string}
@@ -99,7 +120,9 @@ export function loginReqHandler(
       try {
         const updatedUser: SelectUser = await updateLastActive(user.id, true);
         res.status(200).json({
+          isAuthenticated: true,
           isEmailVerified: updatedUser.isEmailVerified,
+          userProfile: toUserProfile(updatedUser),
         });
         return;
       } catch (error) {
@@ -108,7 +131,7 @@ export function loginReqHandler(
       }
     });
   };
-  passport.authenticate('local', callback)(req, res, next);
+  passport.authenticate('local', onAuthenticated)(req, res, next);
 }
 /**
  * The endpoint to log out the user.
@@ -125,6 +148,7 @@ export function loginReqHandler(
  *               message:
  *                 type: string
  *                 description: Logout successful
+ *                 example: 'Logout successful'
  *             required:
  *               - message
  */
@@ -145,10 +169,11 @@ export function logoutReqHandler(
  * @openapi
  * components:
  *   responses:
- *     VerifyEmailHtmlResponse:
- *       description: Responds with a webpage to inform the user whether the email is verified. Also contains a link to the login page.
- *       content:
- *         text/html:
+ *     VerifyEmail302Response:
+ *       description: Redirects the user to the dashboard if the email verification is successful.
+ *       headers:
+ *         Location:
+ *           description: The URL of the dashboard.
  *           schema:
  *             type: string
  *     VerifyEmail400HtmlResponse:
@@ -157,11 +182,12 @@ export function logoutReqHandler(
  *         text/html:
  *           schema:
  *             type: string
+ *             example: '<!DOCTYPE html> ...'
  */
 export const verifyEmailReqHandler = asyncCatch(
   async (req: Request, res: Response) => {
     let verifyEmailRequest: VerifyEmailRequest;
-    const loginUrl = `${CLIENT_URL}/login`;
+    const loginUrl = `${env.FRONTEND_URL}/login`;
     try {
       verifyEmailRequest = verifyEmailReqSchema.parse({
         params: req.params,
@@ -203,46 +229,168 @@ export const verifyEmailReqHandler = asyncCatch(
       });
       return;
     }
-    await setEmailVerified(tokenRecord); // If fail => Error 500
-    res.status(200).render('message', {
-      type: 'success',
-      title: 'Email Verified',
-      summary: 'Your email has been successfully verified.',
-      details: null,
-      buttonText: 'Go to Login Page',
-      buttonUrl: loginUrl,
-    });
+    await setEmailVerified(tokenRecord);
+    res.status(302).redirect(`${env.FRONTEND_URL}/dashboard`);
   }
 );
 /**
- * Endpoint to send the verification email.
+ * Endpoint to create a new email verification token and send the verification email to the user.
+ * Note that old tokens with the same purpose will be deleted.
  * @openapi
  * components:
  *   responses:
  *     SendVerificationEmailResponse:
- *       description: Responds with the expiration time of the verification token.
+ *       description: Creates a new email verification token and sends the verification email to the user. Responds with the token expiration time. Note that old tokens with the same purpose will be deleted.
  *       content:
  *         application/json:
  *           schema:
  *             type: object
  *             properties:
- *               tokenExpireTimestamp:
- *                 type: integer
- *                 description: The token expiration timestamp.
+ *               tokenExpireDateTime:
+ *                 type: string
+ *                 description: The token expiration time in ISO 8601 format.
+ *                 example: '2024-03-15T13:11:33.957Z'
  *             required:
- *               - tokenExpireTimestamp
+ *               - tokenExpireDateTime
  */
 export const sendVerificationEmailReqHandler = asyncCatch(
   async (req: Request, res: Response) => {
     const user = req.user as SelectUser;
+    await deleteTokensBy(user.id, TokenPurpose.VERIFY_EMAIL);
     const tokenRecord: SelectToken = await createToken({
       userId: user.id,
       purpose: TokenPurpose.VERIFY_EMAIL,
       ttlSec: env.VERIFY_EMAIL_TOKEN_TTL_SEC,
-    }); // If fail => Error 500
-    await sendVerificationEmail(user, tokenRecord); // If fail => Error 500
+    });
+    await sendVerificationEmail(user, tokenRecord);
     res.status(200).json({
-      tokenExpireTimestamp: tokenRecord.expire.getTime(),
+      tokenExpireDateTime: tokenRecord.expire,
     });
   }
 );
+/**
+ * Endpoint to authenticate the user using the Google OAuth strategy.
+ * @openapi
+ * components:
+ *   responses:
+ *     GoogleAuth302Response:
+ *       description: Redirects the user to the Google OAuth consent screen.
+ *       headers:
+ *         Location:
+ *           description: The URL of the Google OAuth consent screen.
+ *           schema:
+ *             type: string
+ *             example: 'https://accounts.google.com/o/oauth2/v2/auth?...'
+ *     GoogleAuth403HtmlResponse:
+ *       description: Responds with a webpage to inform the user that they are already logged in. Also contains a link to the dashboard.
+ *       content:
+ *         text/html:
+ *           schema:
+ *             type: string
+ *             example: '<!DOCTYPE html> ...'
+ */
+export const googleAuthReqHandler = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  if (req.isAuthenticated()) {
+    res.status(403).render('message', {
+      type: 'error',
+      title: 'Error 403: Forbidden',
+      summary:
+        'You are already logged in. Please log out before signing up using Google.',
+      details: null,
+      buttonText: 'Go to Dashboard',
+      buttonUrl: `${env.FRONTEND_URL}/dashboard`,
+    });
+    return;
+  }
+  passport.authenticate('google', {
+    scope: ['email', 'profile'],
+    prompt: 'select_account', // Instead of logging the user in directly, prompt them to select an account in case the account they have selected fails to validate.
+  })(req, res, next);
+};
+/**
+ * Endpoint to handle the callback from the Google OAuth strategy.
+ * @openapi
+ * components:
+ *   responses:
+ *     GoogleAuthCallback302Response:
+ *       description: Redirects the user to the dashboard if the authentication is successful.
+ *       headers:
+ *         Location:
+ *           description: The URL of the dashboard.
+ *           schema:
+ *             type: string
+ *     GoogleAuthCallback403HtmlResponse:
+ *       description: Responds with a webpage to inform the user that they are already logged in. Also contains a link to the dashboard.
+ *       content:
+ *         text/html:
+ *           schema:
+ *             type: string
+ *             example: '<!DOCTYPE html> ...'
+ *     GoogleAuthCallback400HtmlResponse:
+ *       description: Responds with a webpage to inform the user that the Google authentication failed. Also contains a link to the login page. This may happen when the required data cannot be found in the Google profile.
+ *       content:
+ *         text/html:
+ *           schema:
+ *             type: string
+ *             example: '<!DOCTYPE html> ...'
+ *     GoogleAuthCallback409HtmlResponse:
+ *      description: Responds with a webpage to inform the user that the Google authentication failed. Also contains a link to the login page. This may happen when the user is already signed up with the same email using a different method.
+ *      content:
+ *        text/html:
+ *          schema:
+ *            type: string
+ *            example: '<!DOCTYPE html> ...'
+ */
+export const googleAuthCallbackReqHandler = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  if (req.isAuthenticated()) {
+    res.status(403).render('message', {
+      type: 'error',
+      title: 'Error 403: Forbidden',
+      summary:
+        'You are already logged in. Please log out before signing up using Google.',
+      details: null,
+      buttonText: 'Go to Dashboard',
+      buttonUrl: `${env.FRONTEND_URL}/dashboard`,
+    });
+    return;
+  }
+  const onAuthenticated = (error: Error, user: SelectUser) => {
+    // Handle 4xx HTTP errors.
+    if (error instanceof HttpError) {
+      res.status(error.status).render('message', {
+        type: 'error',
+        title: `Error ${error.status}`,
+        summary: error.message,
+        details: null,
+        buttonText: 'Go to Login Page',
+        buttonUrl: `${env.FRONTEND_URL}/login`,
+      });
+      return;
+    }
+    // Handle 500 HTTP errors.
+    if (error) {
+      next(error);
+      return;
+    }
+    // Successful authentication.
+    req.logIn(user, async (error: Error) => {
+      // Handle login errors.
+      if (error) {
+        next(error); // Error 500
+        return;
+      }
+      // Successful login.
+      await updateLastActive(user.id, true);
+      res.status(302).redirect(`${env.FRONTEND_URL}/dashboard`);
+    });
+  };
+  passport.authenticate('google', onAuthenticated)(req, res, next);
+};

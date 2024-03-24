@@ -1,0 +1,32 @@
+.dashboard-statistics-box {
+  width: 100%;
+  box-sizing: border-box;
+  max-width: none;
+}
+.statistics-container {
+  display: flex;
+  width: 100%;
+  flex-wrap: nowrap;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: start;
+  gap: 20px;
+}
+.statistics-item {
+  width: 33%;
+  box-sizing: border-box;
+  text-align: center;
+}
+.statistics-item h1 {
+  font-size: 26px;
+  color: #999;
+}
+.statistics-item-value {
+  font-size: 44px;
+  font-weight: 600;
+  padding: 5px 0;
+}
+.statistics-last-updated{
+  font-size: 14px;
+  color: #999;
+}

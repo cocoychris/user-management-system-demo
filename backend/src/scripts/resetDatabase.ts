@@ -1,4 +1,5 @@
 /**
+ * @fileoverview
  * This file runs the reset script for the database using pg library.
  * This file is not used in the application, but is used as a script to reset the database.
  *

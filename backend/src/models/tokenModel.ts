@@ -1,6 +1,6 @@
 /**
- * This file contains the ORM schema for all the tables in the database using
- * the `drizzle-orm` library.
+ * @fileoverview
+ * This file contains the Drizzle ORM schema of the `tokens` table.
  *
  * The TypeScript types are generated from the ORM schema and are used throughout
  * the rest of the application.
@@ -10,7 +10,6 @@
 import {
   pgTable,
   varchar,
-  json,
   timestamp,
   pgEnum,
   integer,
@@ -57,33 +56,6 @@ export const tokens = pgTable(
     };
   }
 );
-
-/**
- * ORM schema of the `session` table.
- * Equivalent to the `connect-pg-simple` library's session table:
- * CREATE TABLE "session" (
- *   "sid" varchar NOT NULL COLLATE "default",
- *   "sess" json NOT NULL,
- *   "expire" timestamp(6) NOT NULL
- * )
- * WITH (OIDS=FALSE);
- * ALTER TABLE "session" ADD CONSTRAINT "session_pkey" PRIMARY KEY ("sid") NOT DEFERRABLE INITIALLY IMMEDIATE;
- * CREATE INDEX "IDX_session_expire" ON "session" ("expire");
- */
-export const sessions = pgTable(
-  'session',
-  {
-    sid: varchar('sid').primaryKey(),
-    sess: json('sess').notNull(),
-    expire: timestamp('expire', {precision: 6}).notNull(),
-  },
-  table => {
-    return {
-      sessionExpireIdx: index('IDX_session_expire').on(table.expire),
-    };
-  }
-);
-
 // # Transform the ORM schema into types that we can use in the rest of the file.
 /**
  * The token record that is returned from the database.

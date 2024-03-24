@@ -1,15 +1,18 @@
 /**
- * Service for token operations and management.
+ * @fileoverview
+ * This file contains the service functions for the token management.
+ * The token is used for email verification, and can also be used
+ * for other purposes in the future, such as password reset (forgot password).
  * @module
  */
-import {eq, lt} from 'drizzle-orm';
+
+import {and, eq, lt} from 'drizzle-orm';
 import {db} from '../utils/database';
-import {SelectToken, tokens} from '../models/authModel';
+import {TokenPurpose, SelectToken, tokens} from '../models/tokenModel';
 import {appLogger} from '../utils/logger';
 import {assertIsError} from '../utils/error';
 import {MIN, SEC} from '../utils/time';
 import crypto from 'crypto';
-import {TokenPurpose} from '../models/authModel';
 
 const logger = appLogger.child({module: 'tokenService'});
 const DEFAULT_INTERVAL = 30 * MIN.IN_MS;
@@ -74,6 +77,19 @@ export async function deleteToken(token: string) {
   } catch (error) {
     assertIsError(error);
     throw new Error(`Failed to delete token: ${error.message}`);
+  }
+}
+/**
+ * Deletes all tokens by user ID and purpose.
+ */
+export async function deleteTokensBy(userId: number, purpose: TokenPurpose) {
+  try {
+    await db
+      .delete(tokens)
+      .where(and(eq(tokens.userId, userId), eq(tokens.purpose, purpose)));
+  } catch (error) {
+    assertIsError(error);
+    throw new Error(`Failed to delete tokens by user ID: ${error.message}`);
   }
 }
 /**

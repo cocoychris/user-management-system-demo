@@ -1,0 +1,6 @@
+.login-page {
+  max-width: 300px;
+}
+.login-page .MuiButtonBase-root {
+  width: 100%;
+}

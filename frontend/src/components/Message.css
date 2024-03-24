@@ -1,0 +1,13 @@
+div.message {
+  font-size: 18px;
+}
+div.message.error {
+  color: #a00;
+}
+div.message.success {
+  color: #090;
+}
+
+div.message.info {
+  color: #004a94;
+}

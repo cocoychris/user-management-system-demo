@@ -1,5 +1,6 @@
 /**
- * Routes for authentication.
+ * @fileoverview
+ * This file contains the routes for authentication.
  * @module
  */
 
@@ -19,6 +20,8 @@ import {
 } from '../schema/authSchema';
 import {
   checkStatusReqHandler,
+  googleAuthCallbackReqHandler,
+  googleAuthReqHandler,
   loginReqHandler,
   logoutReqHandler,
   sendVerificationEmailReqHandler,
@@ -115,8 +118,8 @@ router.post(
  *     parameters:
  *       - $ref: '#/components/parameters/VerifyEmailParamToken'
  *     responses:
- *       200:
- *         $ref: '#/components/responses/VerifyEmailHtmlResponse'
+ *       302:
+ *         $ref: '#/components/responses/VerifyEmail302Response'
  *       400:
  *         $ref: '#/components/responses/VerifyEmail400HtmlResponse'
  *       500:
@@ -156,4 +159,46 @@ router.post(
   ensureAuthStrategy(AuthStrategy.LOCAL),
   ensureEmailVerified(false),
   sendVerificationEmailReqHandler
+);
+/**
+ * @openapi
+ * /auth/google:
+ *   get:
+ *     description: Authenticate the user using Google OAuth.
+ *     operationId: googleAuth
+ *     tags:
+ *       - auth
+ *     responses:
+ *       302:
+ *         $ref: '#/components/responses/GoogleAuth302Response'
+ *       403:
+ *         $ref: '#/components/responses/GoogleAuth403HtmlResponse'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerErrorHtmlResponse'
+ */
+router.get('/google', googleAuthReqHandler, internalServerErrorHtmlHandler);
+/**
+ * @openapi
+ * /auth/google/callback:
+ *   get:
+ *     description: Callback for Google OAuth.
+ *     operationId: googleAuthCallback
+ *     tags:
+ *       - auth
+ *     responses:
+ *       302:
+ *         $ref: '#/components/responses/GoogleAuthCallback302Response'
+ *       403:
+ *         $ref: '#/components/responses/GoogleAuthCallback403HtmlResponse'
+ *       400:
+ *         $ref: '#/components/responses/GoogleAuthCallback400HtmlResponse'
+ *       409:
+ *         $ref: '#/components/responses/GoogleAuthCallback409HtmlResponse'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerErrorHtmlResponse'
+ */
+router.get(
+  '/google/callback',
+  googleAuthCallbackReqHandler,
+  internalServerErrorHtmlHandler
 );

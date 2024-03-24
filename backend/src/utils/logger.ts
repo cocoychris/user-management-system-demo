@@ -1,3 +1,9 @@
+/**
+ * @fileoverview
+ * This file contains the logger for the application.
+ * The logger is used to log the application's activities to the console and to files.
+ * @module
+ */
 import {format, createLogger, transports} from 'winston';
 import {env, NodeEnv} from '../globalVars';
 

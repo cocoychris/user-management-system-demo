@@ -1,0 +1,17 @@
+.dashboard-table-box {
+  width: 100%;
+  box-sizing: border-box;
+  max-width: none;
+  padding: 15px;
+}
+
+.dashboard-table-box .MuiDataGrid-root {
+  width: 100%;
+}
+.dashboard-table-box .refresh-button {
+  width: 100%;
+}
+.table-last-updated{
+  font-size: 14px;
+  color: #999;
+}

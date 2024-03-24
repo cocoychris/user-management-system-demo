@@ -1,0 +1,29 @@
+.box{
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    border-radius: 10px;
+    border: 2px solid #ddd;
+    padding: 20px;
+    text-align: center;
+    margin: 0 auto;
+}
+.box-direction-row{
+    flex-direction: row;
+}
+.box-direction-column{
+    flex-direction: column;
+}
+
+.box h1{
+    margin: 10px 0;
+    font-size: 30px;
+    color: #777;
+}
+
+.box h2{
+    margin: 8px 0;
+    font-size: 24px;
+}

@@ -1,6 +1,12 @@
+/**
+ * @fileoverview
+ * This file contains the global variables for the application.
+ * It also loads the environment variables from the .env file and validates them.
+ * @module
+ */
 import zod from 'zod';
 import dotenv from 'dotenv';
-import {assertIsError} from './utils/error';
+import {assertIsError, zodErrorToMessage} from './utils/error';
 import {DAY} from './utils/time';
 
 /**
@@ -26,13 +32,9 @@ const envSchema = zod.object({
    */
   PORT: zod.coerce.number().default(3000),
   /**
-   * The URL of the client application in development.
+   * The URL of the frontend application.
    */
-  DEV_CLIENT_URL: zod.string(),
-  /**
-   * The URL of the client application in production.
-   */
-  PROD_CLIENT_URL: zod.string(),
+  FRONTEND_URL: zod.string(),
   /**
    * The URI for the PostgreSQL database.
    */
@@ -65,6 +67,18 @@ const envSchema = zod.object({
    * The email address to send the verification emails from.
    */
   EMAIL_SENDER: zod.string(),
+  /**
+   * The Client ID for Google OAuth.
+   */
+  GOOGLE_CLIENT_ID: zod.string(),
+  /**
+   * The Client Secret for Google OAuth.
+   */
+  GOOGLE_CLIENT_SECRET: zod.string(),
+  /**
+   * Indicates whether to use CORS.
+   */
+  USE_CORS: zod.coerce.boolean(),
 });
 // Load the environment variables from the .env file.
 export type Env = zod.infer<typeof envSchema>;
@@ -77,13 +91,13 @@ function loadEnv(): Env {
     return envSchema.parse(result.parsed);
   } catch (error) {
     assertIsError(error, zod.ZodError);
-    throw new Error(`Environment validation error: ${error.errors}`);
+    throw new Error(
+      `Environment validation error: ${zodErrorToMessage(error)}`
+    );
   }
 }
-export const env: Env = loadEnv();
 
 /**
- * The URL of the client application.
+ * The environment variables.
  */
-export const CLIENT_URL: string =
-  env.NODE_ENV === NodeEnv.PROD ? env.PROD_CLIENT_URL : env.DEV_CLIENT_URL;
+export const env: Env = loadEnv();

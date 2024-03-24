@@ -1,8 +1,12 @@
 /**
- * Middleware functions for validating and parsing the request body, query, and params.
- * Also contains middleware functions for ensuring that the user is authenticated and
- * that the user's email is verified.
+ * @fileoverview
+ * This file contains all the general purpose middleware functions that are used
+ * in multiple routes.
+ *
+ * The middleware functions are used for request parsing, condition checking,
+ * error handling and more.
  * @module
+ *
  * @openapi
  * components:
  *   schemas:
@@ -12,17 +16,16 @@
  *         message:
  *           type: string
  *           description: The error message.
+ *           example: '4xx error message here'
  *       required:
  *         - message
- *       example:
- *         message: '4xx error message here'
  */
 
 import {Request, Response, NextFunction} from 'express';
 import {AnyZodObject, ZodError} from 'zod';
 import {assertIsError, zodErrorToMessage} from './utils/error';
 import {appLogger, reqLogger} from './utils/logger';
-import {CLIENT_URL, NodeEnv, env} from './globalVars';
+import {NodeEnv, env} from './globalVars';
 
 /**
  * Validates and parses the request body, query, and params using
@@ -131,7 +134,7 @@ export function ensureAuthenticated(shoudBeAuthenticated: boolean) {
       return;
     }
     if (!shoudBeAuthenticated && req.isAuthenticated()) {
-      const message = 'Forbidden: Action not allowed when logged in';
+      const message = 'Forbidden: Action only allowed when not logged in';
       appLogger.warn(message);
       res.status(403).json({message});
       return;
@@ -216,7 +219,7 @@ export function notFoundErrorHandler(req: Request, res: Response) {
  * components:
  *   responses:
  *     PageNotFoundHtmlResponse:
- *       description: Responds with a web page that says "Page not found" and a link for returning to the home page.
+ *       description: Responds with a webpage that says "Page not found" and a link for returning to the home page.
  *       content:
  *         text/html:
  *           schema:
@@ -231,7 +234,7 @@ export function pageNotFoundErrorHandler(req: Request, res: Response) {
     summary: 'The page you are looking for does not exist.',
     details: null,
     buttonText: 'Go to Home Page',
-    buttonUrl: CLIENT_URL,
+    buttonUrl: env.FRONTEND_URL,
   });
 }
 /**
@@ -250,10 +253,9 @@ export function pageNotFoundErrorHandler(req: Request, res: Response) {
  *               message:
  *                 type: string
  *                 description: Internal server error
+ *                 example: 'Internal server error'
  *             required:
  *               - message
- *             example:
- *               message: 'Internal server error'
  */
 export function internalServerErrorHandler(
   error: Error,
@@ -278,7 +280,7 @@ export function internalServerErrorHandler(
  * components:
  *   responses:
  *     InternalServerErrorHtmlResponse:
- *       description: Responds with a web page that says "Internal server error" and a link for returning to the home page.
+ *       description: Responds with a webpage that says "Internal server error" and a link for returning to the home page.
  *       content:
  *         text/html:
  *           schema:
@@ -301,10 +303,13 @@ export function internalServerErrorHtmlHandler(
     summary: 'An internal server error occurred.',
     details: env.NODE_ENV === NodeEnv.DEV ? error.message : null,
     buttonText: 'Go to Home Page',
-    buttonUrl: CLIENT_URL,
+    buttonUrl: env.FRONTEND_URL,
   });
 }
-
+/**
+ * Catchs the SyntaxError thrown by `express.json()` and sends
+ * 400 (Bad Request) in JSON format.
+ */
 export function jsonSyntaxErrorHandler(
   error: Error,
   req: Request,

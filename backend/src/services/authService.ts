@@ -1,16 +1,25 @@
 /**
- * Service for authentication operations.
+ * @fileoverview
+ * This file contains the service functions for authentication
+ * and email verification.
+ * @module
  */
+
 import bcrypt from 'bcrypt';
 import sgMail from '@sendgrid/mail';
 import {appLogger} from '../utils/logger';
 import {env} from '../globalVars';
-import {CLIENT_URL} from '../globalVars';
 import {AuthStrategy, SelectUser, users} from '../models/userModel';
-import {TokenPurpose} from '../models/authModel';
 import {db} from '../utils/database';
-import {SelectToken, tokens} from '../models/authModel';
+import {TokenPurpose, SelectToken, tokens} from '../models/tokenModel';
 import {eq} from 'drizzle-orm';
+import ejs from 'ejs';
+import path from 'path';
+
+const VERIFICATION_EMAIL_FILE_PATH = path.join(
+  __dirname,
+  '../../views/verificationEmail.ejs'
+);
 
 const logger = appLogger.child({module: 'authService'});
 /**
@@ -47,13 +56,17 @@ export async function sendVerificationEmail(
   if (user.isEmailVerified) {
     throw new Error(`User email is already verified: ${user.email}`);
   }
-  const verificationUrl = `${CLIENT_URL}/api/v1/auth/verify-email/${tokenRecord.token}`;
+  const verificationUrl = `${env.FRONTEND_URL}/api/v1/auth/verify-email/${tokenRecord.token}`;
   await sgMail.send({
     to: user.email,
     from: env.EMAIL_SENDER,
     subject: 'Verify your email',
-    text: `Click the link to verify your email: ${verificationUrl}`,
-    html: `Click the link to verify your email: <a href="${verificationUrl}">${verificationUrl}</a>`,
+    text: `Please click the link to verify your email:\n ${verificationUrl}`,
+    html: await ejs.renderFile(VERIFICATION_EMAIL_FILE_PATH, {
+      imageUrl: env.FRONTEND_URL + '/backend/assets/ums_logo.svg',
+      verificationUrl: verificationUrl,
+      homeUrl: env.FRONTEND_URL,
+    }),
   });
   logger.info(
     `Verification email sent. User ID: ${user.id}, Email: ${user.email}`

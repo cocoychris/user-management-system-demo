@@ -1,3 +1,11 @@
+/**
+ * @fileoverview
+ * This file contains the schema for the authentication routes.
+ * The schema is used for request validation and documentation.
+ * It also provides the inferred types for the request payloads.
+ * @module
+ */
+
 import {infer as ZodInfer, object, string} from 'zod';
 import {emailSchema, passwordSchema} from './userSchema';
 
@@ -52,6 +60,7 @@ export const logoutReqSchema = object({});
  *         type: string
  *         minLength: 43
  *         maxLength: 44
+ *         example: '4G2hZMkI8ub76ezKBNeQm2M05v-AMvbcFQiQqMaerR4'
  */
 export const verifyEmailReqSchema = object({
   params: object({

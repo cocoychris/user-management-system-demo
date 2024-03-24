@@ -1,0 +1,16 @@
+form.simple-form-base {
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 20px;
+  width: 100%;
+}
+
+form.simple-form-base .MuiTextField-root {
+  width: 100%;
+}
+form.simple-form-base .MuiButtonBase-root {
+  width: 100%;
+}

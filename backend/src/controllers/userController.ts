@@ -1,7 +1,14 @@
+import {NextFunction} from 'express';
 /**
- * Controller for the user routes.
+ * @fileoverview
+ * This file contains the controller for the users routes.
+ *
+ * Controllers are the end point middleware of a route.
+ * It implements the main business logic of the route,
+ * and is responsible for sending the response.
  * @module
  */
+
 import {Request, Response} from 'express';
 import {env} from '../globalVars';
 import {AuthStrategy, SelectUser} from '../models/userModel';
@@ -9,13 +16,13 @@ import {
   CreateUserRequest,
   UpdateMyProfileRequest,
   ResetPasswordRequest,
+  UserProfile,
 } from '../schema/userSchema';
 import {DAY} from '../utils/time';
 import {sendVerificationEmail, validatePassword} from '../services/authService';
 import {createToken} from '../services/tokenService';
-import {SelectToken, TokenPurpose} from '../models/authModel';
+import {SelectToken, TokenPurpose} from '../models/tokenModel';
 import {
-  UserProfile,
   countActiveUsersSince,
   countUsers,
   createUser,
@@ -26,6 +33,8 @@ import {
   updateUserProfile,
 } from '../services/userService';
 import {asyncCatch} from '../middleware';
+import {assertIsErrorWithCode} from '../utils/error';
+import {appLogger} from '../utils/logger';
 /**
  * Endpoint for getting the current user's profile.
  * @openapi
@@ -47,7 +56,7 @@ import {asyncCatch} from '../middleware';
 export const getMyProfileReqHandler = asyncCatch(
   async (req: Request, res: Response) => {
     const user = req.user as SelectUser;
-    const updatedUser: SelectUser = await updateLastActive(user.id);
+    const updatedUser: SelectUser = await updateLastActive(user.id, false);
     res.status(200).json({
       userProfile: toUserProfile(updatedUser),
     });
@@ -68,7 +77,7 @@ export const getMyProfileReqHandler = asyncCatch(
  *               userProfile:
  *                 $ref: '#/components/schemas/UserProfile'
  *             required:
- *              - userProfile
+ *               - userProfile
  */
 export const updateMyProfileReqHandler = asyncCatch(
   async (req: Request, res: Response) => {
@@ -95,6 +104,7 @@ export const updateMyProfileReqHandler = asyncCatch(
  *               message:
  *                 type: string
  *                 description: The message indicating the password has been reset.
+ *                 example: 'Password updated'
  *             required:
  *               - message
  *     ResetPassword401Response:
@@ -115,6 +125,13 @@ export const resetPasswordReqHandler = asyncCatch(
       });
       return;
     }
+    // Check if new password is the same as the old password.
+    if (oldPassword === newPassword) {
+      res.status(400).json({
+        message: 'New password cannot be the same as the old password',
+      });
+      return;
+    }
     // Update the password.
     await updatePassword(user.id, newPassword);
     res.status(200).json({
@@ -123,7 +140,8 @@ export const resetPasswordReqHandler = asyncCatch(
   }
 );
 /**
- * Endpoint for creating a new user.
+ * Endpoint for creating (signing up) a new user.
+ * A successful sign up is also considered as a login.
  * @openapi
  * components:
  *   responses:
@@ -134,13 +152,19 @@ export const resetPasswordReqHandler = asyncCatch(
  *           schema:
  *             type: object
  *             properties:
- *               tokenExpireTimestamp:
- *                 type: integer
- *                 description: The token expiration timestamp.
+ *               isAuthenticated:
+ *                 type: boolean
+ *                 description: Indicates if the user is authenticated. Usually true after sign up. Might be false if there is an error in login.
+ *                 example: true
+ *               isEmailVerified:
+ *                 type: boolean
+ *                 description: Indicates if the user's email is verified. Usually false after sign up.
+ *                 example: false
  *               userProfile:
  *                 $ref: '#/components/schemas/UserProfile'
  *             required:
- *               - tokenExpireTimestamp
+ *               - isAuthenticated
+ *               - isEmailVerified
  *               - userProfile
  *     CreateUser409Response:
  *       description: Conflict. The email already exists.
@@ -150,7 +174,7 @@ export const resetPasswordReqHandler = asyncCatch(
  *             $ref: '#/components/schemas/ErrorSchema'
  */
 export const createUserReqHandler = asyncCatch(
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response, next: NextFunction) => {
     const {name, email, password} = req.body as CreateUserRequest['body'];
     let user: SelectUser;
     try {
@@ -161,10 +185,8 @@ export const createUserReqHandler = asyncCatch(
         authStrategy: AuthStrategy.LOCAL,
       });
     } catch (error) {
-      type ErrorWithCode = {
-        code: string;
-      };
-      if ((error as ErrorWithCode).code === '23505') {
+      assertIsErrorWithCode(error);
+      if (error.code === '23505') {
         res.status(409).json({
           message: 'Email already exists',
         });
@@ -172,15 +194,32 @@ export const createUserReqHandler = asyncCatch(
       }
       throw error;
     }
-    const tokenRecord: SelectToken = await createToken({
-      userId: user.id,
-      purpose: TokenPurpose.VERIFY_EMAIL,
-      ttlSec: env.VERIFY_EMAIL_TOKEN_TTL_SEC,
-    });
-    await sendVerificationEmail(user, tokenRecord);
-    res.status(201).json({
-      tokenExpireTimestamp: tokenRecord.expire.getTime(),
-      userProfile: toUserProfile(user),
+    // Sign up is also considered as a login.
+    req.login(user, async loginError => {
+      if (loginError) {
+        appLogger.error(`Error in login after sign up: ${loginError.stack}`);
+      }
+      if (!loginError) {
+        // Increment the login count and update the last active time.
+        updateLastActive(user.id, true);
+      }
+      // Continue to send verification email even if there is an error in login
+      // as the user is already created and user can still login later.
+      try {
+        const tokenRecord: SelectToken = await createToken({
+          userId: user.id,
+          purpose: TokenPurpose.VERIFY_EMAIL,
+          ttlSec: env.VERIFY_EMAIL_TOKEN_TTL_SEC,
+        });
+        await sendVerificationEmail(user, tokenRecord);
+        res.status(201).json({
+          isAuthenticated: !loginError,
+          isEmailVerified: user.isEmailVerified,
+          userProfile: toUserProfile(user),
+        });
+      } catch (error) {
+        next(error);
+      }
     });
   }
 );
@@ -227,47 +266,51 @@ export const getAllUsersReqHandler = asyncCatch(
  *           schema:
  *             type: object
  *             properties:
- *               todayBeginTimestamp:
- *                 type: integer
- *                 description: The timestamp of the beginning of today.
- *               sevenDaysAgoTimestamp:
- *                 type: integer
- *                 description: The timestamp of the beginning of 7 days ago.
+ *               todayBeginDateTime:
+ *                 type: string
+ *                 description: The beginning of today in ISO 8601 format.
+ *                 example: '2024-03-15T00:00:00.000Z'
+ *               sevenDaysAgoDateTime:
+ *                 type:  string
+ *                 description: The date and time 7 days ago in ISO 8601 format.
+ *                 example: '2024-03-08T13:11:33.957Z'
  *               totalUsers:
  *                 type: integer
  *                 description: The total number of users who have signed up.
+ *                 example: 100
  *               activeUsersToday:
  *                 type: integer
  *                 description: The total number of users with active sessions today.
+ *                 example: 50
  *               averageActiveUsersLast7Days:
  *                 type: number
  *                 description: The average number of active session users in the last 7 days rolling.
+ *                 example: 60.71
  *             required:
- *               - todayBeginTimestamp
- *               - sevenDaysAgoTimestamp
+ *               - todayBeginDateTime
+ *               - sevenDaysAgoDateTime
  *               - totalUsers
  *               - activeUsersToday
  *               - averageActiveUsersLast7Days
  */
 export const getStatisticsReqHandler = asyncCatch(
   async (req: Request, res: Response) => {
-    const todayBeginTimestamp = Date.now() - 1 * DAY.IN_MS;
+    const todayBeginDateTime = Date.now() - 1 * DAY.IN_MS;
     // Total number of users who have signed up.
     const totalUsers = await countUsers();
     // Total number of users with active sessions today.
-    const activeUsersToday = await countActiveUsersSince(todayBeginTimestamp);
+    const activeUsersToday = await countActiveUsersSince(todayBeginDateTime);
     // Average number of active session users in the last 7 days rolling.
-    const sevenDaysAgoTimestamp = Date.now() - 7 * DAY.IN_MS;
-    const activeUsersLast7Days = await countActiveUsersSince(
-      sevenDaysAgoTimestamp
-    );
+    const sevenDaysAgoDateTime = Date.now() - 7 * DAY.IN_MS;
+    const activeUsersLast7Days =
+      await countActiveUsersSince(sevenDaysAgoDateTime);
     const averageActiveUsersLast7Days = Number(
       (activeUsersLast7Days / 7).toFixed(2)
     );
     // Send the response
     res.status(200).json({
-      todayBeginTimestamp,
-      sevenDaysAgoTimestamp,
+      todayBeginDateTime,
+      sevenDaysAgoDateTime,
       totalUsers,
       activeUsersToday,
       averageActiveUsersLast7Days,

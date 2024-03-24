@@ -1,6 +1,7 @@
 {
     "$schema": "https://typedoc.org/schema.json",
-    "name": "Backend API",
+    "name": "Backend Codebase API",
     "entryPoints": ["./src/*/*.ts", "./src/*.ts"],
     "out": "docs",
+    "readme": "./README.md",
 }

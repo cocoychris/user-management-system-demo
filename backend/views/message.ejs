@@ -2,28 +2,41 @@
 <html>
   <head>
     <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/backend/assets/ums_logo.svg" />
     <% const validTypes = ['success', 'error', 'inform'];
     if(!validTypes.includes(type)) { throw new Error('Invalid message type'); }
     %>
-    <title><%= title %></title>
+    <title><%= title %> | UMS</title>
     <style>
       body {
-        font-family: Arial, sans-serif;
         margin: 0;
+        font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+        line-height: 1.5;
+      }
+      header {
+        width: 100%;
+        color: #666;
+        padding: 10px 0;
+        margin-bottom: 10px;
+        text-align: center;
+      }
+      header h1 {
+        font-size: 20px;
+        margin: 0;
+        padding: 0;
       }
       footer {
+        color: #999;
+        margin-top: 30px;
+        border-top: 1px solid #ddd;
         text-align: center;
-        background-color: #3295ff;
-        padding: 10px 10px;
-        color: #fff;
-        width: 100%;
-        font-size: 16px;
-        position: fixed;
-        bottom: 0;
       }
-      h1 {
-        font-size: 36px;
-        margin-top: 20px;
+      footer a {
+        color: #a66;
+        text-decoration: none;
+      }
+      footer a:hover {
+        color: #f33;
       }
       h2 {
         font-size: 24px;
@@ -33,15 +46,15 @@
         margin-top: 30px;
         padding: 10px 20px;
         font-size: 18px;
-        background-color: #007bff;
+        background-color: #1976d2;
         color: #fff;
         border: none;
         border-radius: 4px;
         cursor: pointer;
-        transition: filter 0.25s;
+        transition: background-color 0.3s ease;
       }
       button:hover {
-        filter: brightness(1.2);
+        background-color: #1565c0;
       }
       button:active {
         filter: brightness(0.8);
@@ -60,7 +73,7 @@
         margin: 30px auto 20px auto;
         padding: 40px 20px;
         text-align: center;
-        border: 2px solid #7ebdff;
+        border: 2px solid #ddd;
         border-radius: 20px;
       }
       .details {
@@ -78,6 +91,10 @@
     </style>
   </head>
   <body>
+    <header>
+      <img src="/backend/assets/ums_logo.svg" width="90px" height="90px" />
+      <h1>User Management System</h1>
+    </header>
     <div class="content">
       <h1 class="<%= type %>"><%= title %></h1>
       <div class="details">
@@ -102,8 +119,19 @@
     </div>
     <footer>
       <p>
-        User Management System (Demo) - Developed by
-        <a href="https://andrash.dev/page/about_andrash">Andrash Yang</a>
+        <a href="/docs/swagger" target="_blank">API Documentation</a>
+        <span> </span>(<a href="/docs/swagger-json" target="_blank"> JSON </a>)
+        ｜<a href="/docs/typeDoc" target="_blank">TypeDoc</a> ｜<a
+          href="https://github.com/cocoychris/user-management-system-demo"
+          target="_blank"
+          >GitHub Repository</a
+        >
+      </p>
+      <p>
+        Developed by
+        <a href="https://andrash.dev/page/about_andrash" target="_blank"
+          >Andrash Yang</a
+        >
       </p>
     </footer>
   </body>

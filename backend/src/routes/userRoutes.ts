@@ -1,5 +1,6 @@
 /**
- * Routes for user management.
+ * @fileoverview
+ * This file contains the routes for user management.
  * @module
  */
 
@@ -102,8 +103,6 @@ router.put(
  *         $ref: '#/components/responses/EnsureAuthenticated401Response'
  *       403:
  *         $ref: '#/components/responses/EnsureAuthStrategy403Response'
- *       409:
- *         $ref: '#/components/responses/EnsureEmailVerified409Response'
  *       500:
  *         $ref: '#/components/responses/InternalServerErrorResponse'
  */
@@ -112,7 +111,6 @@ router.put(
   parseRequest(resetPasswordReqSchema),
   ensureAuthenticated(true),
   ensureAuthStrategy(AuthStrategy.LOCAL),
-  ensureEmailVerified(true),
   resetPasswordReqHandler
 );
 

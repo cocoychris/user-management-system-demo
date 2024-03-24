@@ -1,4 +1,13 @@
+/**
+ * @fileoverview
+ * This file contains the schema for the user routes.
+ * The schema is used for request validation and documentation.
+ * It also provides the inferred types for the request payloads.
+ * @module
+ */
+
 import {infer as ZodInfer, object, string} from 'zod';
+import {SelectUser} from '../models/userModel';
 
 /**
  * Schema for the name.
@@ -9,6 +18,7 @@ import {infer as ZodInfer, object, string} from 'zod';
  *       type: string
  *       minLength: 1
  *       maxLength: 100
+ *       example: 'Snoopy'
  */
 export const nameSchema = string().min(1).max(100);
 /**
@@ -20,6 +30,7 @@ export const nameSchema = string().min(1).max(100);
  *       type: string
  *       format: email
  *       maxLength: 256
+ *       example: 'snoopy@email-example.com'
  */
 export const emailSchema = string().email().max(256);
 /**
@@ -31,6 +42,7 @@ export const emailSchema = string().email().max(256);
  *       type: string
  *       minLength: 8
  *       maxLength: 128
+ *       example: 'IamSnoopy123!'
  */
 export const passwordSchema = string().min(8).max(128);
 /**
@@ -48,6 +60,7 @@ export const passwordSchema = string().min(8).max(128);
  *         - At least one lowercase letter
  *         - At least one number
  *         - At least one special character
+ *       example: 'HelloKitty543!'
  */
 export const newPasswordSchema = string()
   .min(8)
@@ -202,3 +215,51 @@ export type GetAllUsersRequest = ZodInfer<typeof getAllUsersReqSchema>;
  * The inferred type of the get statistics request.
  */
 export type GetStatisticsRequest = ZodInfer<typeof getStatisticsReqSchema>;
+
+/**
+ * The data type for the user profile, which is a subset of the `SelectUser` type.
+ * Note that this is only used for the response payload.
+ * @openapi
+ * components:
+ *   schemas:
+ *     UserProfile:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           description: The user ID.
+ *           example: 1
+ *         name:
+ *           type: string
+ *           description: The user's name.
+ *           example: 'Snoopy'
+ *         email:
+ *           type: string
+ *           description: The user's email.
+ *           example: 'snoopy@email-example.com'
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *           description: The time when the user was created.
+ *           example: '2024-03-15T13:11:33.957Z'
+ *         lastActiveAt:
+ *           type: string
+ *           format: date-time
+ *           description: The time when the user was last active.
+ *           example: '2024-03-15T13:11:33.957Z'
+ *         loginCount:
+ *           type: integer
+ *           description: The number of times the user has logged in.
+ *           example: 5
+ *       required:
+ *         - id
+ *         - name
+ *         - email
+ *         - createdAt
+ *         - lastActiveAt
+ *         - loginCount
+ */
+export type UserProfile = Pick<
+  SelectUser,
+  'id' | 'name' | 'email' | 'createdAt' | 'lastActiveAt' | 'loginCount'
+>;

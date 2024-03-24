@@ -1,0 +1,9 @@
+.dashboard-page{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: start;
+    gap: 20px;
+    max-width: 800px;
+    margin: 20px auto;
+}

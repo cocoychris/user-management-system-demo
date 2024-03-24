@@ -1,0 +1,8 @@
+.verify-email-box{
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.verify-email-box .message{
+    margin: 20px 0;
+}
