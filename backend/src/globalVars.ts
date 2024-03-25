@@ -79,6 +79,10 @@ const envSchema = zod.object({
    * Indicates whether to use CORS.
    */
   USE_CORS: zod.coerce.boolean(),
+  /**
+   * The secret for CSRF tokens.
+   */
+  CSRF_SECRET: zod.string(),
 });
 // Load the environment variables from the .env file.
 export type Env = zod.infer<typeof envSchema>;

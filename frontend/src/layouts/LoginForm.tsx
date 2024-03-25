@@ -60,6 +60,8 @@ export default function LoginForm({
       authContext.setAuthStatus({
         isAuthenticated: true,
         isEmailVerified: data.isEmailVerified,
+        authStrategy: data.authStrategy,
+        csrfToken: data.csrfToken,
       });      
       authContext.setUserProfile(data.userProfile);
       setIsFormDisabled(true);

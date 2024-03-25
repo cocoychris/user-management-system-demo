@@ -1,5 +1,5 @@
 import {Button, Divider} from '@mui/material';
-import {authApi, delay} from '../utils/api';
+import {authApi} from '../utils/api';
 import {assertIsError} from '../utils/error';
 import {ErrorSchema, ResponseError} from '../openapi';
 import {Message, MessageProps} from '../components/Message';
@@ -7,11 +7,13 @@ import {useState} from 'react';
 import {SEC} from '../utils/time';
 import Box from '../components/Box';
 import './VerifyEmailBox.css';
+import {useAuthContext} from '../hooks/useAuthContext';
 
 const BUTTON_DELAY = 20 * SEC.IN_MS;
 export function VerifyEmailBox() {
   const [messageProps, setMessageProps] = useState<MessageProps>({});
   const [isButtonDisabled, setIsButtonDisabled] = useState(false);
+  const authContext = useAuthContext();
   async function onClickSendEmail() {
     if (isButtonDisabled) {
       return;
@@ -23,20 +25,28 @@ export function VerifyEmailBox() {
           type: 'info',
           message: 'Sending...',
         });
-        await authApi.sendVerificationEmail();
+
+        if (!authContext.authStatus) {
+          throw new Error('Auth status is not set');
+        }
+        await authApi.sendVerificationEmail({
+          xCsrfToken: authContext.authStatus.csrfToken,
+        });
         setMessageProps({
           type: 'success',
           message:
             'A new verification email has been sent. Please check your email.',
         });
       } catch (error) {
-        assertIsError(error, ResponseError);
-        const data = (await error.response.json()) as ErrorSchema;
+        assertIsError(error);
+        let message: string = error.message;
+        if (error instanceof ResponseError) {
+          const data = (await error.response.json()) as ErrorSchema;
+          message = data.message || error.response.statusText;
+        }
         setMessageProps({
           type: 'error',
-          message: `Failed to send a new verification email. ${
-            data.message || error.response.statusText
-          }`,
+          message: `Failed to send a new verification email. ${message}`,
         });
       }
     } catch (error) {
@@ -74,4 +84,8 @@ export function VerifyEmailBox() {
       </div>
     </Box>
   );
+}
+
+function delay(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }

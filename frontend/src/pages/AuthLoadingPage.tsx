@@ -14,6 +14,9 @@ export function AuthLoadingPage() {
   const authContext = useAuthContext();
 
   useEffect(() => {
+    if(authContext.authStatus){
+      return;
+    }
     authContext.fetchAuthStatus().catch(error => {
       assertIsError(error);
       setMessageProps({
@@ -23,7 +26,7 @@ export function AuthLoadingPage() {
     });
     // Need this function to run only once, otherwise it will cause an infinite loop
     // eslint-disable-next-line
-  }, []);
+  }, [authContext.authStatus]);
 
   if (!authContext.authStatus) {
     return (

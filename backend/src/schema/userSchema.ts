@@ -177,13 +177,6 @@ export const createUserReqSchema = object({
  * The request payload is empty.
  */
 export const getAllUsersReqSchema = object({});
-// TODO: Implement or delete pagination feature.
-// export const getAllUsersReqSchema = object({
-//   query: object({
-//     page: number().default(1),
-//     pageSize: number().default(10),
-//   }),
-// });
 /**
  * Schema for the get statistics request.
  *

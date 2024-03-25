@@ -1,52 +1,59 @@
-.user-profile-box{
-    width: 100%;
-    max-width: none;
-    box-sizing: border-box;
-    gap: 20px;
+.user-profile-box {
+  width: 100%;
+  max-width: none;
+  box-sizing: border-box;
+  gap: 20px;
 }
 
-.user-profile-container{
-    display: flex;
-    flex-direction: row;
-    justify-content: space-around;
-    align-items: center;
-    width: 100%;
+.user-profile-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  align-items: center;
+  width: 100%;
 }
-.user-profile{
-    text-align: left;
-    display: flex;
-    flex-direction: column;
-    align-items: start;
-    gap: 4px;
-    max-width: 300px;
-    padding: 0 10px;
+.user-profile {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  gap: 4px;
+  max-width: 300px;
+  padding: 0 10px;
 }
-.user-profile-box h1{
-    color: #666;
+.user-profile-box h1 {
+  color: #666;
 }
-.user-profile-box h2{
-    display: inline-block;
-    margin: 0px;
-    word-wrap: break-word;
-    max-width: 100%;
-}
-
-.user-profile-box .email{
-    word-wrap: break-word;
-    max-width: 100%;
-}
-.user-profile-box .button-group{
-    display: flex;
-    flex-direction: row;
-    justify-content: start;
-    flex-wrap: wrap;
-    gap: 10px;
-    padding: 0 10px;
+.user-profile-box h2 {
+  display: inline-block;
+  margin: 0px;
+  word-wrap: break-word;
+  max-width: 100%;
 }
 
-.user-profile-editor{
-    display: flex;
-    flex-direction: row;
-    gap: 20px;
-    max-width: 600px;
+.user-profile-box .email {
+  word-wrap: break-word;
+  max-width: 100%;
+}
+.user-profile-box .button-group {
+  display: flex;
+  flex-direction: row;
+  justify-content: start;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 0 10px;
+}
+
+.user-profile-editor {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  max-width: 600px;
+}
+
+.user-profile-box .google-g-logo {
+  margin-right: 5px;
+  width: 26px;
+  height: 26px;
+  margin-bottom: -4px;
 }

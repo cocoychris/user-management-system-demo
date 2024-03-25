@@ -4,3 +4,7 @@
 .login-page .MuiButtonBase-root {
   width: 100%;
 }
+
+.login-page .google-g-logo{
+  margin-right: 5px;
+}

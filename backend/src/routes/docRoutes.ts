@@ -24,7 +24,8 @@ const options: swaggerJsdoc.Options = {
         name: 'Andrash Yang',
         email: 'cocoychris@gmail.com',
       },
-      description: 'This is a User Management & Authentication API.',
+      description:
+        'APIs for user management and authentication. Double CSRF protection is used, therefore, the client must send the CSRF token in both the cookie and the request header for the non-GET requests.',
     },
     servers: [{url: `${env.FRONTEND_URL}/api/v1`}],
     tags: [
@@ -44,6 +45,7 @@ const options: swaggerJsdoc.Options = {
     './src/controllers/*.ts',
     './src/services/*.ts',
     './src/middleware.ts',
+    './src/utils/csrf.ts',
   ],
 };
 

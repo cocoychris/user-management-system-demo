@@ -9,6 +9,7 @@ import {
 import {nameSchema} from '../schema';
 import {userApi} from '../utils/api';
 import {
+  ErrorSchema,
   GetMyProfile200Response,
   ResponseError,
   UpdateMyProfileRequest,
@@ -61,10 +62,14 @@ export default function EditProfileForm({
         type: 'info',
         message: `Updating...`,
       });
+      if (!authContext.authStatus) {
+        throw new Error('Auth status is not set');
+      }
       const data: GetMyProfile200Response = await userApi.updateMyProfile({
         updateMyProfileRequest: {
           name: formData.name,
         } as UpdateMyProfileRequest,
+        xCsrfToken: authContext.authStatus?.csrfToken,
       });
       setMessageProps({
         type: 'success',
@@ -73,11 +78,15 @@ export default function EditProfileForm({
       setIsFormDisabled(true);
       onSubmitSuccess(data.userProfile);
     } catch (error) {
-      assertIsError(error, ResponseError);
-      const data = await error.response.json();
+      assertIsError(error);
+      let message: string = error.message;
+      if (error instanceof ResponseError) {
+        const data = await error.response.json() as ErrorSchema;
+        message = data.message || error.response.statusText;
+      }
       setMessageProps({
         type: 'error',
-        message: data.message || error.response.statusText,
+        message: `Failed to update. ${message}`,
       });
       setIsSubmitDisabled(false);
     }

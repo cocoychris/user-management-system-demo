@@ -13,6 +13,7 @@ models/GetStatistics200Response.ts
 models/Login200Response.ts
 models/LoginRequest.ts
 models/Logout200Response.ts
+models/Logout403Response.ts
 models/ResetPassword200Response.ts
 models/ResetPasswordRequest.ts
 models/SendVerificationEmail200Response.ts

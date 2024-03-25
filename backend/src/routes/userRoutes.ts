@@ -28,6 +28,7 @@ import {
   resetPasswordReqHandler,
 } from '../controllers/userController';
 import {AuthStrategy} from '../models/userModel';
+import {doubleCsrfProtection} from '../utils/csrf';
 
 /**
  * Router for the authentication & user management API.
@@ -64,6 +65,8 @@ router.get(
  *   put:
  *     tags:
  *       - user
+ *     parameters:
+ *       - $ref: '#/components/parameters/CSRFTokenHeader'
  *     description: Update the current user's profile.
  *     operationId: updateMyProfile
  *     requestBody:
@@ -75,11 +78,14 @@ router.get(
  *         $ref: '#/components/responses/ParseRequest400Response'
  *       401:
  *         $ref: '#/components/responses/EnsureAuthenticated401Response'
+ *       403:
+ *         $ref: '#/components/responses/DoubleCsrfProtection403Response'
  *       500:
  *         $ref: '#/components/responses/InternalServerErrorResponse'
  */
 router.put(
   '/me',
+  doubleCsrfProtection,
   parseRequest(updateMyProfileReqSchema),
   ensureAuthenticated(true),
   updateMyProfileReqHandler
@@ -90,6 +96,8 @@ router.put(
  *   put:
  *     tags:
  *       - user
+ *     parameters:
+ *       - $ref: '#/components/parameters/CSRFTokenHeader'
  *     description: Reset the current user's password.
  *     operationId: resetPassword
  *     requestBody:
@@ -102,12 +110,17 @@ router.put(
  *       401:
  *         $ref: '#/components/responses/EnsureAuthenticated401Response'
  *       403:
- *         $ref: '#/components/responses/EnsureAuthStrategy403Response'
+ *         description: Forbidden. The auth strategy is not local or the CSRF token is invalid.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorSchema'
  *       500:
  *         $ref: '#/components/responses/InternalServerErrorResponse'
  */
 router.put(
   '/me/password',
+  doubleCsrfProtection,
   parseRequest(resetPasswordReqSchema),
   ensureAuthenticated(true),
   ensureAuthStrategy(AuthStrategy.LOCAL),
@@ -116,7 +129,7 @@ router.put(
 
 /**
  * @openapi
- * /users:
+ * /users/me:
  *   post:
  *     tags:
  *       - user
@@ -137,7 +150,7 @@ router.put(
  *         $ref: '#/components/responses/InternalServerErrorResponse'
  */
 router.post(
-  '/',
+  '/me',
   parseRequest(createUserReqSchema),
   ensureAuthenticated(false),
   createUserReqHandler

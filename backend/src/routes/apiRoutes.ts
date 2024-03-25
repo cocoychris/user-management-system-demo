@@ -35,6 +35,8 @@ import {
 import {validatePassword} from '../services/authService';
 import {assertIsError, assertIsErrorWithCode} from '../utils/error';
 import {HttpError} from '../utils/HttpError';
+import cookieParser from 'cookie-parser';
+import {COOKIE_SECURE} from '../utils/csrf';
 
 /**
  * The strategy for authenticating users with an email and password.
@@ -156,18 +158,26 @@ passport.deserializeUser(async (id: number, done) => {
 export const apiRouter = Router();
 const router = apiRouter;
 const PgStore = connectPgSimple(expressSession);
+router.use(cookieParser());
 router.use(
   expressSession({
+    name: 'lhtTtkR1Q0', // Using a random name to prevent fingerprinting.
     store: new PgStore({
       pool: pool, // Note that this pool is the same pool that we use for the ORM.
       ttl: env.SESSION_TTL_SEC,
     }),
     secret: env.COOKIE_SECRET,
     resave: false,
-    cookie: {maxAge: env.COOKIE_MAX_AGE_SEC * SEC.IN_MS},
+    cookie: {
+      maxAge: env.COOKIE_MAX_AGE_SEC * SEC.IN_MS,
+      secure: COOKIE_SECURE, // The cookie will only be sent over HTTPS.
+      httpOnly: true, // The cookie cannot be accessed through client-side script.
+      sameSite: 'strict', // The cookie will only be sent in a first-party context.
+    },
     saveUninitialized: false,
   })
 );
 router.use(passport.session());
+
 router.use('/auth', authRouter);
 router.use('/users', userRouter);

@@ -1,7 +1,7 @@
 import {Button, Divider} from '@mui/material';
 import {useAuthContext} from '../hooks/useAuthContext';
 import {Message, MessageProps} from '../components/Message';
-import {useEffect, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import {authApi} from '../utils/api';
 import Box from '../components/Box';
 import {ErrorSchema, ResponseError, UserProfile} from '../openapi';
@@ -9,13 +9,32 @@ import {assertIsError} from '../utils/error';
 import './UserProfileBox.css';
 import EditProfileForm from './EditProfileForm';
 import ResetPasswordForm from './ResetPasswordForm';
+import {SEC} from '../utils/time';
+import GoogleLogo from '../assets/google_g_logo.svg';
+
+const MESSAGE_DURATION = 5 * SEC.IN_MS;
 
 export function UserProfileBox() {
+  const messageTimer = useRef<NodeJS.Timeout | null>(null);
   const authContext = useAuthContext();
-  const [messageProps, setMessageProps] = useState<MessageProps>({});
+  const [messageProps, _setMessageProps] = useState<MessageProps>({});
   const [currentForm, setCurrentForm] = useState<
     'editProfile' | 'resetPassword' | null
   >(null);
+  const isLocalAuthStrategy = authContext.authStatus?.authStrategy === 'local';
+  const isGoogleAuthStrategy =
+    authContext.authStatus?.authStrategy === 'googleOAuth';
+  function setMessageProps(props: MessageProps) {
+    _setMessageProps(props);
+    if (props.message && MESSAGE_DURATION) {
+      if (messageTimer.current) {
+        clearTimeout(messageTimer.current);
+      }
+      messageTimer.current = setTimeout(() => {
+        _setMessageProps({});
+      }, MESSAGE_DURATION);
+    }
+  }
   useEffect(() => {
     if (authContext.userProfile) {
       return;
@@ -38,28 +57,36 @@ export function UserProfileBox() {
   async function onCLickLogOut() {
     setMessageProps({type: 'info', message: 'Logging out...'});
     try {
-      await authApi.logout();
-      authContext.setAuthStatus({
-        isAuthenticated: false,
-        isEmailVerified: false,
+      if (!authContext.authStatus) {
+        throw new Error('Auth status is not set');
+      }
+      await authApi.logout({
+        xCsrfToken: authContext.authStatus.csrfToken,
       });
+      authContext.setAuthStatus(null);
       setMessageProps({
         type: 'success',
         message: 'Logged out successfully',
       });
     } catch (error) {
-      assertIsError(error, ResponseError);
-      const data = (await error.response.json()) as ErrorSchema;
+      assertIsError(error);
+      let message: string = error.message;
+      if (error instanceof ResponseError) {
+        const data = (await error.response.json()) as ErrorSchema;
+        message = data.message || error.response.statusText;
+      }
       setMessageProps({
         type: 'error',
-        message: `Failed to log out. ${data.message || error.message}`,
+        message: `Failed to log out. ${message}`,
       });
     }
   }
   function onCLickEditProfile() {
+    setMessageProps({});
     setCurrentForm('editProfile');
   }
   function onClickResetPassword() {
+    setMessageProps({});
     setCurrentForm('resetPassword');
   }
   async function onEditProfileSuccess(userProfile: UserProfile) {
@@ -92,7 +119,16 @@ export function UserProfileBox() {
       <Message {...messageProps} />
       <div className="user-profile-container">
         <div className="user-profile">
-          <h2>{authContext.userProfile.name}</h2>
+          <h2>
+            {isGoogleAuthStrategy ? (
+              <img
+                className="google-g-logo"
+                src={GoogleLogo}
+                alt="Google Logo"
+              />
+            ):"👤 "}
+            {authContext.userProfile.name}
+          </h2>
           <span className="email">{authContext.userProfile.email}</span>
         </div>
         <Divider flexItem orientation="vertical" />
@@ -112,9 +148,9 @@ export function UserProfileBox() {
             variant="contained"
             color="primary"
             onClick={onClickResetPassword}
-            disabled={currentForm === 'resetPassword'}
+            disabled={currentForm === 'resetPassword' || !isLocalAuthStrategy}
           >
-            Reset Password
+            {!isLocalAuthStrategy && '🚫 '}Reset Password
           </Button>
         </div>
       </div>

@@ -11,6 +11,7 @@ export * from './GetStatistics200Response';
 export * from './Login200Response';
 export * from './LoginRequest';
 export * from './Logout200Response';
+export * from './Logout403Response';
 export * from './ResetPassword200Response';
 export * from './ResetPasswordRequest';
 export * from './SendVerificationEmail200Response';

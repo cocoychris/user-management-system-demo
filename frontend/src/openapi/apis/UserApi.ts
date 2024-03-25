@@ -22,6 +22,7 @@ import type {
   GetAllUsers200Response,
   GetMyProfile200Response,
   GetStatistics200Response,
+  Logout403Response,
   ResetPassword200Response,
   ResetPasswordRequest,
   UpdateMyProfileRequest,
@@ -41,6 +42,8 @@ import {
     GetMyProfile200ResponseToJSON,
     GetStatistics200ResponseFromJSON,
     GetStatistics200ResponseToJSON,
+    Logout403ResponseFromJSON,
+    Logout403ResponseToJSON,
     ResetPassword200ResponseFromJSON,
     ResetPassword200ResponseToJSON,
     ResetPasswordRequestFromJSON,
@@ -54,10 +57,12 @@ export interface CreateUserOperationRequest {
 }
 
 export interface ResetPasswordOperationRequest {
+    xCsrfToken: string;
     resetPasswordRequest?: ResetPasswordRequest;
 }
 
 export interface UpdateMyProfileOperationRequest {
+    xCsrfToken: string;
     updateMyProfileRequest?: UpdateMyProfileRequest;
 }
 
@@ -77,7 +82,7 @@ export class UserApi extends runtime.BaseAPI {
         headerParameters['Content-Type'] = 'application/json';
 
         const response = await this.request({
-            path: `/users`,
+            path: `/users/me`,
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
@@ -177,11 +182,19 @@ export class UserApi extends runtime.BaseAPI {
      * Reset the current user\'s password.
      */
     async resetPasswordRaw(requestParameters: ResetPasswordOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ResetPassword200Response>> {
+        if (requestParameters.xCsrfToken === null || requestParameters.xCsrfToken === undefined) {
+            throw new runtime.RequiredError('xCsrfToken','Required parameter requestParameters.xCsrfToken was null or undefined when calling resetPassword.');
+        }
+
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
         headerParameters['Content-Type'] = 'application/json';
+
+        if (requestParameters.xCsrfToken !== undefined && requestParameters.xCsrfToken !== null) {
+            headerParameters['x-csrf-token'] = String(requestParameters.xCsrfToken);
+        }
 
         const response = await this.request({
             path: `/users/me/password`,
@@ -197,7 +210,7 @@ export class UserApi extends runtime.BaseAPI {
     /**
      * Reset the current user\'s password.
      */
-    async resetPassword(requestParameters: ResetPasswordOperationRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ResetPassword200Response> {
+    async resetPassword(requestParameters: ResetPasswordOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ResetPassword200Response> {
         const response = await this.resetPasswordRaw(requestParameters, initOverrides);
         return await response.value();
     }
@@ -206,11 +219,19 @@ export class UserApi extends runtime.BaseAPI {
      * Update the current user\'s profile.
      */
     async updateMyProfileRaw(requestParameters: UpdateMyProfileOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<GetMyProfile200Response>> {
+        if (requestParameters.xCsrfToken === null || requestParameters.xCsrfToken === undefined) {
+            throw new runtime.RequiredError('xCsrfToken','Required parameter requestParameters.xCsrfToken was null or undefined when calling updateMyProfile.');
+        }
+
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
         headerParameters['Content-Type'] = 'application/json';
+
+        if (requestParameters.xCsrfToken !== undefined && requestParameters.xCsrfToken !== null) {
+            headerParameters['x-csrf-token'] = String(requestParameters.xCsrfToken);
+        }
 
         const response = await this.request({
             path: `/users/me`,
@@ -226,7 +247,7 @@ export class UserApi extends runtime.BaseAPI {
     /**
      * Update the current user\'s profile.
      */
-    async updateMyProfile(requestParameters: UpdateMyProfileOperationRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<GetMyProfile200Response> {
+    async updateMyProfile(requestParameters: UpdateMyProfileOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<GetMyProfile200Response> {
         const response = await this.updateMyProfileRaw(requestParameters, initOverrides);
         return await response.value();
     }

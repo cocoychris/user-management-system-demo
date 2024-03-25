@@ -1,5 +1,4 @@
-import {ZodError, ZodSchema, z} from 'zod';
-import {assertIsError} from './utils/error';
+import {z} from 'zod';
 
 export const nameSchema = z
   .string()
@@ -39,25 +38,3 @@ export const newPasswordSchema = z
   .refine(password => /\W|_/.test(password), {
     message: 'Password must contain at least one special character',
   });
-
-// TODO: Remove this function
-/**
- * Validates a value against a schema and returns an error message if the
- * value is invalid. Returns an empty string if the value is valid.
- */
-export function validate(
-  value: unknown,
-  schema: ZodSchema,
-  ignoreEmpty = false
-) {
-  if (ignoreEmpty && !value) {
-    return '';
-  }
-  try {
-    schema.parse(value);
-    return '';
-  } catch (error) {
-    assertIsError(error, ZodError);
-    return error.errors[0].message;
-  }
-}

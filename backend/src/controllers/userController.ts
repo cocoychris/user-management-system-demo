@@ -35,6 +35,7 @@ import {
 import {asyncCatch} from '../middleware';
 import {assertIsErrorWithCode} from '../utils/error';
 import {appLogger} from '../utils/logger';
+import {generateToken} from '../utils/csrf';
 /**
  * Endpoint for getting the current user's profile.
  * @openapi
@@ -160,6 +161,14 @@ export const resetPasswordReqHandler = asyncCatch(
  *                 type: boolean
  *                 description: Indicates if the user's email is verified. Usually false after sign up.
  *                 example: false
+ *               authStrategy:
+ *                 type: string
+ *                 description: The authentication strategy used to authenticate the user. Only provided if the user is authenticated.
+ *                 example: 'local'
+ *               csrfToken:
+ *                 type: string
+ *                 description: The CSRF token for the user session. Usually present if the user is authenticated.
+ *                 example: '96a87aac7682fa382d86d81afeb87e9fc32d457bc5f8bb2b9c3e3f547bc20b90b8bb7d5fd9a3a97b3323a79a06d3cf169a8a25449935dd71750dc4722a0f4b77'
  *               userProfile:
  *                 $ref: '#/components/schemas/UserProfile'
  *             required:
@@ -212,9 +221,12 @@ export const createUserReqHandler = asyncCatch(
           ttlSec: env.VERIFY_EMAIL_TOKEN_TTL_SEC,
         });
         await sendVerificationEmail(user, tokenRecord);
+        const isAuthenticated = !loginError;
         res.status(201).json({
-          isAuthenticated: !loginError,
+          isAuthenticated,
           isEmailVerified: user.isEmailVerified,
+          authStrategy: isAuthenticated ? user.authStrategy : undefined,
+          csrfToken: isAuthenticated ? generateToken(req, res) : undefined,
           userProfile: toUserProfile(user),
         });
       } catch (error) {

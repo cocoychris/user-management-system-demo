@@ -26,6 +26,7 @@ import {assertIsError, zodErrorToMessage} from '../utils/error';
 import {ZodError} from 'zod';
 import {asyncCatch} from '../middleware';
 import {HttpError} from '../utils/HttpError';
+import {generateToken} from '../utils/csrf';
 
 const logger = appLogger.child({module: 'authController'});
 /**
@@ -46,6 +47,14 @@ const logger = appLogger.child({module: 'authController'});
  *               isEmailVerified:
  *                 type: boolean
  *                 description: Whether the user's email is verified.
+ *               authStrategy:
+ *                 type: string
+ *                 description: The authentication strategy used to authenticate the user. Only provided if the user is authenticated.
+ *                 example: 'local'
+ *               csrfToken:
+ *                 type: string
+ *                 description: The CSRF token for the user session. Only provided if the user is authenticated.
+ *                 example: '96a87aac7682fa382d86d81afeb87e9fc32d457bc5f8bb2b9c3e3f547bc20b90b8bb7d5fd9a3a97b3323a79a06d3cf169a8a25449935dd71750dc4722a0f4b77'
  *             required:
  *               - isAuthenticated
  *               - isEmailVerified
@@ -56,6 +65,8 @@ export const checkStatusReqHandler = asyncCatch(
     res.status(200).json({
       isAuthenticated,
       isEmailVerified: isAuthenticated ? req.user.isEmailVerified : false,
+      authStrategy: isAuthenticated ? req.user.authStrategy : undefined,
+      csrfToken: isAuthenticated ? generateToken(req, res) : undefined,
     });
   }
 );
@@ -78,11 +89,21 @@ export const checkStatusReqHandler = asyncCatch(
  *               isEmailVerified:
  *                 type: boolean
  *                 description: Whether the user's email is verified.
+ *               authStrategy:
+ *                 type: string
+ *                 description: The authentication strategy used to authenticate the user.
+ *                 example: 'local'
+ *               csrfToken:
+ *                 type: string
+ *                 description: The CSRF token for the user session.
+ *                 example: '96a87aac7682fa382d86d81afeb87e9fc32d457bc5f8bb2b9c3e3f547bc20b90b8bb7d5fd9a3a97b3323a79a06d3cf169a8a25449935dd71750dc4722a0f4b77'
  *               userProfile:
  *                 $ref: '#/components/schemas/UserProfile'
  *             required:
  *               - isAuthenticated
  *               - isEmailVerified
+ *               - authStrategy
+ *               - csrfToken
  *               - userProfile
  *     Login401Response:
  *       description: Unauthorized. User login failed.
@@ -122,6 +143,8 @@ export function loginReqHandler(
         res.status(200).json({
           isAuthenticated: true,
           isEmailVerified: updatedUser.isEmailVerified,
+          authStrategy: user.authStrategy,
+          csrfToken: generateToken(req, res),
           userProfile: toUserProfile(updatedUser),
         });
         return;

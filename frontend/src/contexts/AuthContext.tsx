@@ -11,12 +11,14 @@ export interface AuthProviderProps {
 export interface AuthStatus {
   isAuthenticated: boolean;
   isEmailVerified: boolean;
+  authStrategy?: string;
+  csrfToken: string;
 }
 
 export interface AuthContextValue {
   authStatus: AuthStatus | null;
   userProfile: UserProfile | null;
-  setAuthStatus: (authStatus: AuthStatus) => void;
+  setAuthStatus: (authStatus: AuthStatus | null) => void;
   setUserProfile: (userProfile: UserProfile) => void;
   fetchAuthStatus: () => Promise<void>;
   fetchUserProfile: () => Promise<void>;
@@ -25,7 +27,6 @@ export interface AuthContextValue {
 export const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({children}: AuthProviderProps) {
-  console.log('AuthProvider');
   const [authStatus, setAuthStatus] = useState<AuthStatus | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
 
@@ -35,6 +36,8 @@ export function AuthProvider({children}: AuthProviderProps) {
       setAuthStatus({
         isAuthenticated: data.isAuthenticated,
         isEmailVerified: data.isEmailVerified,
+        authStrategy: data.authStrategy,
+        csrfToken: data.csrfToken || '',
       });
     } catch (error) {
       assertIsError(error, ResponseError);

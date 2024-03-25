@@ -21,6 +21,7 @@ import type {
   Login200Response,
   LoginRequest,
   Logout200Response,
+  Logout403Response,
   SendVerificationEmail200Response,
 } from '../models/index';
 import {
@@ -36,12 +37,22 @@ import {
     LoginRequestToJSON,
     Logout200ResponseFromJSON,
     Logout200ResponseToJSON,
+    Logout403ResponseFromJSON,
+    Logout403ResponseToJSON,
     SendVerificationEmail200ResponseFromJSON,
     SendVerificationEmail200ResponseToJSON,
 } from '../models/index';
 
 export interface LoginOperationRequest {
     loginRequest?: LoginRequest;
+}
+
+export interface LogoutRequest {
+    xCsrfToken: string;
+}
+
+export interface SendVerificationEmailRequest {
+    xCsrfToken: string;
 }
 
 export interface VerifyEmailRequest {
@@ -161,10 +172,18 @@ export class AuthApi extends runtime.BaseAPI {
     /**
      * Log out the user.
      */
-    async logoutRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Logout200Response>> {
+    async logoutRaw(requestParameters: LogoutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Logout200Response>> {
+        if (requestParameters.xCsrfToken === null || requestParameters.xCsrfToken === undefined) {
+            throw new runtime.RequiredError('xCsrfToken','Required parameter requestParameters.xCsrfToken was null or undefined when calling logout.');
+        }
+
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
+
+        if (requestParameters.xCsrfToken !== undefined && requestParameters.xCsrfToken !== null) {
+            headerParameters['x-csrf-token'] = String(requestParameters.xCsrfToken);
+        }
 
         const response = await this.request({
             path: `/auth/logout`,
@@ -179,18 +198,26 @@ export class AuthApi extends runtime.BaseAPI {
     /**
      * Log out the user.
      */
-    async logout(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Logout200Response> {
-        const response = await this.logoutRaw(initOverrides);
+    async logout(requestParameters: LogoutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Logout200Response> {
+        const response = await this.logoutRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Send the verification email to the user.
      */
-    async sendVerificationEmailRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SendVerificationEmail200Response>> {
+    async sendVerificationEmailRaw(requestParameters: SendVerificationEmailRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SendVerificationEmail200Response>> {
+        if (requestParameters.xCsrfToken === null || requestParameters.xCsrfToken === undefined) {
+            throw new runtime.RequiredError('xCsrfToken','Required parameter requestParameters.xCsrfToken was null or undefined when calling sendVerificationEmail.');
+        }
+
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
+
+        if (requestParameters.xCsrfToken !== undefined && requestParameters.xCsrfToken !== null) {
+            headerParameters['x-csrf-token'] = String(requestParameters.xCsrfToken);
+        }
 
         const response = await this.request({
             path: `/auth/send-verification-email`,
@@ -205,15 +232,15 @@ export class AuthApi extends runtime.BaseAPI {
     /**
      * Send the verification email to the user.
      */
-    async sendVerificationEmail(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SendVerificationEmail200Response> {
-        const response = await this.sendVerificationEmailRaw(initOverrides);
+    async sendVerificationEmail(requestParameters: SendVerificationEmailRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SendVerificationEmail200Response> {
+        const response = await this.sendVerificationEmailRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Verify the user\'s email using the token.
      */
-    async verifyEmailRaw(requestParameters: VerifyEmailRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<string>> {
+    async verifyEmailRaw(requestParameters: VerifyEmailRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.token === null || requestParameters.token === undefined) {
             throw new runtime.RequiredError('token','Required parameter requestParameters.token was null or undefined when calling verifyEmail.');
         }
@@ -229,19 +256,14 @@ export class AuthApi extends runtime.BaseAPI {
             query: queryParameters,
         }, initOverrides);
 
-        if (this.isJsonMime(response.headers.get('content-type'))) {
-            return new runtime.JSONApiResponse<string>(response);
-        } else {
-            return new runtime.TextApiResponse(response) as any;
-        }
+        return new runtime.VoidApiResponse(response);
     }
 
     /**
      * Verify the user\'s email using the token.
      */
-    async verifyEmail(requestParameters: VerifyEmailRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<string> {
-        const response = await this.verifyEmailRaw(requestParameters, initOverrides);
-        return await response.value();
+    async verifyEmail(requestParameters: VerifyEmailRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.verifyEmailRaw(requestParameters, initOverrides);
     }
 
 }

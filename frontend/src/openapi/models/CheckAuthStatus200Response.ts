@@ -31,6 +31,18 @@ export interface CheckAuthStatus200Response {
      * @memberof CheckAuthStatus200Response
      */
     isEmailVerified: boolean;
+    /**
+     * The authentication strategy used to authenticate the user. Only provided if the user is authenticated.
+     * @type {string}
+     * @memberof CheckAuthStatus200Response
+     */
+    authStrategy?: string;
+    /**
+     * The CSRF token for the user session. Only provided if the user is authenticated.
+     * @type {string}
+     * @memberof CheckAuthStatus200Response
+     */
+    csrfToken?: string;
 }
 
 /**
@@ -56,6 +68,8 @@ export function CheckAuthStatus200ResponseFromJSONTyped(json: any, ignoreDiscrim
         
         'isAuthenticated': json['isAuthenticated'],
         'isEmailVerified': json['isEmailVerified'],
+        'authStrategy': !exists(json, 'authStrategy') ? undefined : json['authStrategy'],
+        'csrfToken': !exists(json, 'csrfToken') ? undefined : json['csrfToken'],
     };
 }
 
@@ -70,6 +84,8 @@ export function CheckAuthStatus200ResponseToJSON(value?: CheckAuthStatus200Respo
         
         'isAuthenticated': value.isAuthenticated,
         'isEmailVerified': value.isEmailVerified,
+        'authStrategy': value.authStrategy,
+        'csrfToken': value.csrfToken,
     };
 }
 

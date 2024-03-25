@@ -4,7 +4,7 @@ import './StatisticsBox.css';
 import {useEffect, useState} from 'react';
 import {userApi} from '../utils/api';
 import {Message, MessageProps} from '../components/Message';
-import {GetStatistics200Response, ResponseError} from '../openapi';
+import {ErrorSchema, GetStatistics200Response, ResponseError} from '../openapi';
 import {assertIsError} from '../utils/error';
 import {SEC} from '../utils/time';
 
@@ -15,11 +15,11 @@ export default function StatisticsBox() {
   );
   const [messageProps, setMessageProps] = useState<MessageProps>({});
   useEffect(() => {
-    let intervalId: NodeJS.Timeout;
+    let intervalId: NodeJS.Timeout | null = null;
     const getStatistics = async () => {
       try {
         setMessageProps({type: 'info', message: 'Loading...'});
-        // Just for testing
+        // Simulate an error for testing
         // if (Math.random() < 0.5) {
         //   throw new ResponseError(
         //     new Response(JSON.stringify({
@@ -29,27 +29,34 @@ export default function StatisticsBox() {
         // }
         const data = await userApi.getStatistics();
         setStatistics(data);
-        if (!intervalId) {
-          intervalId = setInterval(
-            getStatistics,
-            UPDATE_INTERVAL_SEC * SEC.IN_MS
-          );
-        }
       } catch (error) {
-        assertIsError(error, ResponseError);
-        const data = await error.response.json();
-        setStatistics(null);
+        assertIsError(error);
+        let message: string = error.message;
+        if (error instanceof ResponseError) {
+          const data = (await error.response.json()) as ErrorSchema;
+          message = data.message || error.response.statusText;
+        }
         setMessageProps({
           type: 'error',
-          message: `Failed to get statistics: ${
-            data.message || error.response.statusText
-          }`,
+          message: `Failed to get statistics. ${message}`,
         });
+        setStatistics(null);
+        // Stop the interval if there is an error
+        // if (intervalId) {
+        //   clearInterval(intervalId);
+        // }
       }
     };
     getStatistics();
+    // Update statistics every UPDATE_INTERVAL_SEC seconds
+    intervalId = setInterval(
+      getStatistics,
+      UPDATE_INTERVAL_SEC * SEC.IN_MS
+    );
     return () => {
-      clearInterval(intervalId);
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
     };
   }, []);
 

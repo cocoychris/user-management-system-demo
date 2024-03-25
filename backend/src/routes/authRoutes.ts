@@ -28,6 +28,7 @@ import {
   verifyEmailReqHandler,
 } from '../controllers/authController';
 import {AuthStrategy} from '../models/userModel';
+import {doubleCsrfProtection} from '../utils/csrf';
 
 /**
  * Router for the authentication & user management API.
@@ -38,7 +39,7 @@ const router = authRouter;
  * @openapi
  * /auth/check-status:
  *   get:
- *     description: Check the authentication status of the user.
+ *     description: Retrieve the user's authentication status. The user is considered authenticated if the session cookie is valid.
  *     operationId: checkAuthStatus
  *     tags:
  *       - auth
@@ -52,7 +53,7 @@ const router = authRouter;
  */
 router.get(
   '/check-status',
-  parseRequest(checkStatusReqSchema),
+  parseRequest(checkStatusReqSchema), // Can respond with 400 if the request is invalid.
   checkStatusReqHandler
 );
 /**
@@ -79,8 +80,8 @@ router.get(
  */
 router.post(
   '/login',
-  parseRequest(loginReqSchema),
-  ensureAuthenticated(false),
+  parseRequest(loginReqSchema), // Can respond with 400 if the request is invalid.
+  ensureAuthenticated(false), // Can respond with 403 if the user is already authenticated.
   loginReqHandler
 );
 /**
@@ -91,6 +92,8 @@ router.post(
  *     operationId: logout
  *     tags:
  *       - auth
+ *     parameters:
+ *       - $ref: '#/components/parameters/CSRFTokenHeader'
  *     responses:
  *       200:
  *         $ref: '#/components/responses/LogoutResponse'
@@ -98,13 +101,16 @@ router.post(
  *         $ref: '#/components/responses/ParseRequest400Response'
  *       401:
  *         $ref: '#/components/responses/EnsureAuthenticated401Response'
+ *       403:
+ *         $ref: '#/components/responses/DoubleCsrfProtection403Response'
  *       500:
  *         $ref: '#/components/responses/InternalServerErrorResponse'
  */
 router.post(
   '/logout',
-  parseRequest(logoutReqSchema),
-  ensureAuthenticated(true),
+  doubleCsrfProtection, // Can respond with 403 if the CSRF token is invalid.
+  parseRequest(logoutReqSchema), // Can respond with 400 if the request is invalid.
+  ensureAuthenticated(true), // Can respond with 401 if the user is not authenticated.
   logoutReqHandler
 );
 /**
@@ -138,6 +144,8 @@ router.get(
  *     operationId: sendVerificationEmail
  *     tags:
  *       - auth
+ *     parameters:
+ *       - $ref: '#/components/parameters/CSRFTokenHeader'
  *     responses:
  *       200:
  *         $ref: '#/components/responses/SendVerificationEmailResponse'
@@ -146,7 +154,11 @@ router.get(
  *       401:
  *         $ref: '#/components/responses/EnsureAuthenticated401Response'
  *       403:
- *         $ref: '#/components/responses/EnsureAuthStrategy403Response'
+ *         description: Forbidden. The auth strategy is not local or the CSRF token is invalid.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorSchema'
  *       409:
  *         $ref: '#/components/responses/EnsureEmailVerified409Response'
  *       500:
@@ -154,10 +166,11 @@ router.get(
  */
 router.post(
   '/send-verification-email',
-  parseRequest(sendVerificationEmailReqSchema),
-  ensureAuthenticated(true),
-  ensureAuthStrategy(AuthStrategy.LOCAL),
-  ensureEmailVerified(false),
+  doubleCsrfProtection, // Can respond with 403 if the CSRF token is invalid.
+  parseRequest(sendVerificationEmailReqSchema), // Can respond with 400 if the request is invalid.
+  ensureAuthenticated(true), // Can respond with 401 if the user is not authenticated.
+  ensureAuthStrategy(AuthStrategy.LOCAL), // Can respond with 403 if the auth strategy is not local.
+  ensureEmailVerified(false), // Can respond with 409 if the email is already verified.
   sendVerificationEmailReqHandler
 );
 /**
@@ -181,7 +194,7 @@ router.get('/google', googleAuthReqHandler, internalServerErrorHtmlHandler);
  * @openapi
  * /auth/google/callback:
  *   get:
- *     description: Callback for Google OAuth.
+ *     description: Callback for Google OAuth. Will redirect to the dashboard if successful.
  *     operationId: googleAuthCallback
  *     tags:
  *       - auth

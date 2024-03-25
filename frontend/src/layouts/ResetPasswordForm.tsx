@@ -8,8 +8,9 @@ import {
 } from '../components/SimpleFormBase';
 import {newPasswordSchema, passwordSchema} from '../schema';
 import {userApi} from '../utils/api';
-import {ResetPasswordRequest, ResponseError} from '../openapi';
+import {ErrorSchema, ResetPasswordRequest, ResponseError} from '../openapi';
 import {assertIsError} from '../utils/error';
+import {useAuthContext} from '../hooks/useAuthContext';
 
 const fieldConfigDict: FieldConfigDict = {
   oldPassword: {
@@ -50,6 +51,7 @@ export default function ResetPasswordForm({
   onSubmitSuccess: () => void;
   onCanceled?: () => void;
 }) {
+  const authContext = useAuthContext();
   const [messageProps, setMessageProps] = useState<MessageProps>({});
   const buttonConfigDict: ButtonConfigDict = {
     submit: {
@@ -77,12 +79,16 @@ export default function ResetPasswordForm({
         type: 'info',
         message: `Updating...`,
       });
+      if (!authContext.authStatus) {
+        throw new Error('Auth status is not set');
+      }
       await userApi.resetPassword({
         resetPasswordRequest: {
           oldPassword: formData.oldPassword,
           newPassword: formData.newPassword,
           confirmPassword: formData.confirmPassword,
         } as ResetPasswordRequest,
+        xCsrfToken: authContext.authStatus.csrfToken,
       });
       setMessageProps({
         type: 'success',
@@ -91,11 +97,15 @@ export default function ResetPasswordForm({
       setIsFormDisabled(true);
       onSubmitSuccess();
     } catch (error) {
-      assertIsError(error, ResponseError);
-      const data = await error.response.json();
+      assertIsError(error);
+      let message: string = error.message;
+      if (error instanceof ResponseError) {
+        const data = (await error.response.json()) as ErrorSchema;
+        message = data.message || error.response.statusText;
+      }
       setMessageProps({
         type: 'error',
-        message: data.message || error.response.statusText,
+        message: `Failed to update password. ${message}`,
       });
       setIsSubmitDisabled(false);
     }

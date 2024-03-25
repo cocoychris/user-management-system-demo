@@ -17,6 +17,7 @@ import {userApi} from '../utils/api';
 import {
   CreateUser201Response,
   CreateUserRequest,
+  ErrorSchema,
   ResponseError,
 } from '../openapi';
 import {useAuthContext} from '../hooks/useAuthContext';
@@ -85,23 +86,6 @@ export default function SignUpForm({
           confirmPassword: formData.confirmPassword,
         } as CreateUserRequest,
       });
-
-      // TODO: Remove the code below
-      // For testing
-      // await delay(3000);
-      // const response = {
-      //   userProfile: {
-      //     id: 9,
-      //     name: formData.name,
-      //     email: formData.email,
-      //     isEmailVerified: false,
-      //     createdAt: new Date(),
-      //     lastActiveAt: new Date(),
-      //     loginCount: 3,
-      //   },
-      //   tokenExpireDateTime: new Date(),
-      // };
-
       setMessageProps({
         type: 'success',
         message: `Sign up succeeded.`,
@@ -109,16 +93,22 @@ export default function SignUpForm({
       authContext.setAuthStatus({
         isAuthenticated: data.isAuthenticated,
         isEmailVerified: data.isEmailVerified,
+        authStrategy: data.authStrategy,
+        csrfToken: data.csrfToken || '',
       });
       authContext.setUserProfile(data.userProfile);
       setIsFormDisabled(true);
       onSubmitSuccess();
     } catch (error) {
-      assertIsError(error, ResponseError);
-      const data = await error.response.json();
+      assertIsError(error);
+      let message: string = error.message;
+      if (error instanceof ResponseError) {
+        const data = (await error.response.json()) as ErrorSchema;
+        message = data.message || error.response.statusText;
+      }
       setMessageProps({
         type: 'error',
-        message: data.message || error.response.statusText,
+        message,
       });
       setIsSubmitDisabled(false);
     }

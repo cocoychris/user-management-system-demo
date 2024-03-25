@@ -39,6 +39,18 @@ export interface CreateUser201Response {
      */
     isEmailVerified: boolean;
     /**
+     * The authentication strategy used to authenticate the user. Only provided if the user is authenticated.
+     * @type {string}
+     * @memberof CreateUser201Response
+     */
+    authStrategy?: string;
+    /**
+     * The CSRF token for the user session. Usually present if the user is authenticated.
+     * @type {string}
+     * @memberof CreateUser201Response
+     */
+    csrfToken?: string;
+    /**
      * 
      * @type {UserProfile}
      * @memberof CreateUser201Response
@@ -70,6 +82,8 @@ export function CreateUser201ResponseFromJSONTyped(json: any, ignoreDiscriminato
         
         'isAuthenticated': json['isAuthenticated'],
         'isEmailVerified': json['isEmailVerified'],
+        'authStrategy': !exists(json, 'authStrategy') ? undefined : json['authStrategy'],
+        'csrfToken': !exists(json, 'csrfToken') ? undefined : json['csrfToken'],
         'userProfile': UserProfileFromJSON(json['userProfile']),
     };
 }
@@ -85,6 +99,8 @@ export function CreateUser201ResponseToJSON(value?: CreateUser201Response | null
         
         'isAuthenticated': value.isAuthenticated,
         'isEmailVerified': value.isEmailVerified,
+        'authStrategy': value.authStrategy,
+        'csrfToken': value.csrfToken,
         'userProfile': UserProfileToJSON(value.userProfile),
     };
 }

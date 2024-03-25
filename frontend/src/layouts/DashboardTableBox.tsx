@@ -1,6 +1,11 @@
 import {useEffect, useState} from 'react';
 import Box from '../components/Box';
-import {GetAllUsers200Response, ResponseError, UserProfile} from '../openapi';
+import {
+  ErrorSchema,
+  GetAllUsers200Response,
+  ResponseError,
+  UserProfile,
+} from '../openapi';
 import './DashboardTableBox.css';
 import {DataGrid, GridColDef} from '@mui/x-data-grid';
 import {userApi} from '../utils/api';
@@ -71,19 +76,20 @@ export default function DashboardTableBox() {
       //     );
       //   }
       const data: GetAllUsers200Response = await userApi.getAllUsers();
-      setRows(data.userProfileList);
-      console.log(data.userProfileList);
       setMessageProps({});
+      setRows(data.userProfileList);
     } catch (error) {
-      assertIsError(error, ResponseError);
-      const data = await error.response.json();
-      setRows(null);
+      assertIsError(error);
+      let message: string = error.message;
+      if (error instanceof ResponseError) {
+        const data = (await error.response.json()) as ErrorSchema;
+        message = data.message || error.response.statusText;
+      }
       setMessageProps({
         type: 'error',
-        message: `Failed to get user data: ${
-          data.message || error.response.statusText
-        }`,
+        message:`Failed to get user list. ${message}`,
       });
+      setRows(null);
     }
   };
   useEffect(() => {

@@ -39,6 +39,18 @@ export interface Login200Response {
      */
     isEmailVerified: boolean;
     /**
+     * The authentication strategy used to authenticate the user. Only provided if the user is authenticated.
+     * @type {string}
+     * @memberof Login200Response
+     */
+    authStrategy: string;
+    /**
+     * The CSRF token for the user session.
+     * @type {string}
+     * @memberof Login200Response
+     */
+    csrfToken: string;
+    /**
      * 
      * @type {UserProfile}
      * @memberof Login200Response
@@ -53,6 +65,8 @@ export function instanceOfLogin200Response(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "isAuthenticated" in value;
     isInstance = isInstance && "isEmailVerified" in value;
+    isInstance = isInstance && "authStrategy" in value;
+    isInstance = isInstance && "csrfToken" in value;
     isInstance = isInstance && "userProfile" in value;
 
     return isInstance;
@@ -70,6 +84,8 @@ export function Login200ResponseFromJSONTyped(json: any, ignoreDiscriminator: bo
         
         'isAuthenticated': json['isAuthenticated'],
         'isEmailVerified': json['isEmailVerified'],
+        'authStrategy': json['authStrategy'],
+        'csrfToken': json['csrfToken'],
         'userProfile': UserProfileFromJSON(json['userProfile']),
     };
 }
@@ -85,6 +101,8 @@ export function Login200ResponseToJSON(value?: Login200Response | null): any {
         
         'isAuthenticated': value.isAuthenticated,
         'isEmailVerified': value.isEmailVerified,
+        'authStrategy': value.authStrategy,
+        'csrfToken': value.csrfToken,
         'userProfile': UserProfileToJSON(value.userProfile),
     };
 }
