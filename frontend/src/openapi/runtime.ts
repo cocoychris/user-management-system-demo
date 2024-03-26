@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * User Management System - API
- * This is a User Management & Authentication API.
+ * APIs for user management and authentication. Double CSRF protection is used, therefore, the client must send the CSRF token in both the cookie and the request header for the non-GET requests.
  *
  * The version of the OpenAPI document: 1.0.0
  * Contact: cocoychris@gmail.com
@@ -13,7 +13,7 @@
  */
 
 
-export const BASE_PATH = "http://localhost:5173/api/v1".replace(/\/+$/, "");
+export const BASE_PATH = "https://golden-happiness.com/api/v1".replace(/\/+$/, "");
 
 export interface ConfigurationParameters {
     basePath?: string; // override base path

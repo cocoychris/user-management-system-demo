@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * User Management System - API
- * This is a User Management & Authentication API.
+ * APIs for user management and authentication. Double CSRF protection is used, therefore, the client must send the CSRF token in both the cookie and the request header for the non-GET requests.
  *
  * The version of the OpenAPI document: 1.0.0
  * Contact: cocoychris@gmail.com
@@ -65,7 +65,7 @@ export interface VerifyEmailRequest {
 export class AuthApi extends runtime.BaseAPI {
 
     /**
-     * Check the authentication status of the user.
+     * Retrieve the user\'s authentication status. The user is considered authenticated if the session cookie is valid.
      */
     async checkAuthStatusRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CheckAuthStatus200Response>> {
         const queryParameters: any = {};
@@ -83,7 +83,7 @@ export class AuthApi extends runtime.BaseAPI {
     }
 
     /**
-     * Check the authentication status of the user.
+     * Retrieve the user\'s authentication status. The user is considered authenticated if the session cookie is valid.
      */
     async checkAuthStatus(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CheckAuthStatus200Response> {
         const response = await this.checkAuthStatusRaw(initOverrides);
@@ -116,7 +116,7 @@ export class AuthApi extends runtime.BaseAPI {
     }
 
     /**
-     * Callback for Google OAuth.
+     * Callback for Google OAuth. Will redirect to the dashboard if successful.
      */
     async googleAuthCallbackRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         const queryParameters: any = {};
@@ -134,7 +134,7 @@ export class AuthApi extends runtime.BaseAPI {
     }
 
     /**
-     * Callback for Google OAuth.
+     * Callback for Google OAuth. Will redirect to the dashboard if successful.
      */
     async googleAuthCallback(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
         await this.googleAuthCallbackRaw(initOverrides);

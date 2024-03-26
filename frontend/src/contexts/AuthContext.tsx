@@ -40,9 +40,13 @@ export function AuthProvider({children}: AuthProviderProps) {
         csrfToken: data.csrfToken || '',
       });
     } catch (error) {
-      assertIsError(error, ResponseError);
-      const data = (await error.response.json()) as ErrorSchema;
-      throw new Error(data.message || error.response.statusText);
+      assertIsError(error);
+      let message = error.message;
+      if (error instanceof ResponseError) {
+        const data = (await error.response.json()) as ErrorSchema;
+        message = data.message || error.response.statusText;
+      }
+      throw new Error(message);
     }
   }
   async function fetchUserProfile() {

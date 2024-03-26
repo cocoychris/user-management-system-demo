@@ -74,6 +74,12 @@ app.use(notFoundErrorHandler);
 app.use(internalServerErrorHandler);
 
 // Start the server
-app.listen(env.PORT, () => {
-  appLogger.info(`Server is running at http://localhost:${env.PORT}`);
-});
+appLogger.info('Starting the server...');
+app
+  .listen(env.PORT, () => {
+    appLogger.info(`Server is running at http://localhost:${env.PORT}`);
+  })
+  .on('error', error => {
+    appLogger.error(error);
+    throw error;
+  });

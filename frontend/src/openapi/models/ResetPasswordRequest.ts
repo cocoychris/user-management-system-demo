@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * User Management System - API
- * This is a User Management & Authentication API.
+ * APIs for user management and authentication. Double CSRF protection is used, therefore, the client must send the CSRF token in both the cookie and the request header for the non-GET requests.
  *
  * The version of the OpenAPI document: 1.0.0
  * Contact: cocoychris@gmail.com

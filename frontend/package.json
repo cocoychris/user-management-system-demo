@@ -6,8 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "lint": "gts lint",
+    "start": "npm run preview",
     "preview": "vite preview",
+    "pm2": "pm2 start --name frontend 'vite preview'",
+    "lint": "gts lint",
     "clean": "gts clean",
     "compile": "tsc",
     "fix": "gts fix",
