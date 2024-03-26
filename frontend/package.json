@@ -13,7 +13,7 @@
     "clean": "gts clean",
     "compile": "tsc",
     "fix": "gts fix",
-    "prepare": "npm.cmd run compile",
+    "disabled!prepare": "npm.cmd run compile",
     "pretest": "npm.cmd run compile",
     "posttest": "npm.cmd run lint",
     "openapi-sdk": "openapi-generator-cli generate -i http://localhost:8080/docs/swagger-json -o src/openapi -g typescript-fetch --additional-properties=supportsES6=true,typescriptThreePlus=true"

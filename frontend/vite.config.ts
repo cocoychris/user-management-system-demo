@@ -11,9 +11,11 @@ if (!env.API_SERVER_URL) {
 export default defineConfig({
   plugins: [react()],
   server: {
+    // The proxy settings are just for development
+    // Will use nginx for production
     proxy: {
       '/api': env.API_SERVER_URL,
-      '/doc': env.API_SERVER_URL,
+      '/docs': env.API_SERVER_URL,
       '/backend': env.API_SERVER_URL,
     },
   },
