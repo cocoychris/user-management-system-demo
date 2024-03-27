@@ -13,7 +13,7 @@ import passport from 'passport';
 import {env} from '../globalVars';
 import {SelectUser} from '../models/userModel';
 import {TokenPurpose, SelectToken} from '../models/tokenModel';
-import {VerifyEmailRequest, verifyEmailReqSchema} from '../schema/authSchema';
+import {VerifyEmailRequest, verifyEmailReqSchema} from '../schemas/authSchema';
 import {
   createToken,
   deleteTokensBy,

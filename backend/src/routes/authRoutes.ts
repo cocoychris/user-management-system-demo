@@ -17,7 +17,7 @@ import {
   loginReqSchema,
   logoutReqSchema,
   sendVerificationEmailReqSchema,
-} from '../schema/authSchema';
+} from '../schemas/authSchema';
 import {
   checkStatusReqHandler,
   googleAuthCallbackReqHandler,

@@ -1,14 +1,17 @@
 # About the Backend
 This document provides an overview of the backend codebase for the User Management System, developed by Andrash. The aim is to help you understand the structure of the backend codebase.
 
+```
+Please note that this file is designed for `typedoc` documentation and is intended to be displayed on the `typedoc` generated documentation website. If you're viewing this file in a text editor, I recommend opening it in a browser for a complete documentation experience.
+```
 ## Getting Started
 I suggest beginning with the [`index.ts` file](modules/index.html), the entry point to the backend codebase. Following that, it would be beneficial to explore the `routes` directory.
 
 ## Routes
 The backend primarily consists of two routes:
 - **Docs Route**: This route provides access to the `typeDoc` documentation (which you're currently reading) and the [`swagger` documentation](/docs/swagger). The latter offers detailed specifications of all public web APIs exposed by the backend. The `docs` route is accessible without authentication. For more information, refer to the [`docRoutes.ts` file](modules/routes_docRoutes.html).
-- **API Route**: This route serves all public web APIs and includes session & authentication functions. Consequently, the `api` route cannot be accessed without proper authentication. For more details, refer to the [`apiRoutes.ts` file](modules/routes_apiRoutes.html). This route comprises two sub-routes:
-    - **Auth API Route**: This route enables client-side applications to authenticate users, including functionalities like login, logout, and email validation. For more information, refer to the [`authRoutes.ts` file](modules/routes_apiRoutes.html).
+- **API Route**: This route serves the web APIs and includes session & authentication functions. Consequently, the `api` route cannot be accessed without proper authentication. For more details, refer to the [`apiRoutes.ts` file](modules/routes_apiRoutes.html). This route comprises two sub-routes:
+    - **Auth API Route**: This route enables client-side applications to authenticate users, including functionalities like login, logout, and email validation. For more information, refer to the [`authRoutes.ts` file](modules/routes_authRoutes.html).
     - **User API Route**: This route allows client-side applications to manage users. It includes features like creating new users (also known as registration or sign-up), fetching user profiles, editing user profiles, listing all users and their profiles, and fetching user statistics. For more details, refer to the [`userRoutes.ts` file](modules/routes_userRoutes.html).
 
 ## Authentication

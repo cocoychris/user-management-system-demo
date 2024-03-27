@@ -11,7 +11,7 @@ import {appLogger} from '../utils/logger';
 import {AuthStrategy, InsertUser, SelectUser, users} from '../models/userModel';
 import {eq, count, gte, and} from 'drizzle-orm';
 import {env} from '../globalVars';
-import {UserProfile} from '../schema/userSchema';
+import {UserProfile} from '../schemas/userSchema';
 
 const logger = appLogger.child({module: 'userService'});
 /**

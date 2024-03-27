@@ -27,6 +27,10 @@ tokenGcStart(1 * HOUR.IN_MS);
 // Set up SendGrid
 sgMail.setApiKey(env.SENDGRID_API_KEY);
 // Set up CORS
+// This functionality is only added for completeness.
+// In reality, this site is configured to use reverse proxy for
+// backend API calls, and the CORS functionality is disabled
+// by setting the USE_CORS environment variable to false.
 const corsOptions: CorsOptions = {
   origin: env.FRONTEND_URL,
   optionsSuccessStatus: 200,

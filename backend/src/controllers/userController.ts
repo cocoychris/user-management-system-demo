@@ -17,7 +17,7 @@ import {
   UpdateMyProfileRequest,
   ResetPasswordRequest,
   UserProfile,
-} from '../schema/userSchema';
+} from '../schemas/userSchema';
 import {DAY} from '../utils/time';
 import {sendVerificationEmail, validatePassword} from '../services/authService';
 import {createToken} from '../services/tokenService';

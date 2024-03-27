@@ -18,7 +18,7 @@ import {
   getStatisticsReqSchema,
   resetPasswordReqSchema,
   getMyProfileReqSchema,
-} from '../schema/userSchema';
+} from '../schemas/userSchema';
 import {
   getMyProfileReqHandler,
   getAllUsersReqHandler,
