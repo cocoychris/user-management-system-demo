@@ -49,6 +49,8 @@ const limiter = rateLimit({
 // Create the express app
 const app: Express = express();
 app.set('view engine', 'ejs');
+// Enable trust proxy
+app.set('trust proxy', 1);
 if (env.USE_CORS) {
   appLogger.warn(`CORS is enabled for ${env.FRONTEND_URL} only.`);
   app.use(cors(corsOptions));

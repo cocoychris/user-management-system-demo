@@ -83,6 +83,11 @@ const envSchema = zod.object({
    * The secret for CSRF tokens.
    */
   CSRF_SECRET: zod.string(),
+  /**
+   * The secure flag for the session cookie.
+   * Will need to set it to false when using reverse proxy.
+   */
+  COOKIE_SECURE: zod.string().transform(value => value === 'true'),
 });
 // Load the environment variables from the .env file.
 export type Env = zod.infer<typeof envSchema>;

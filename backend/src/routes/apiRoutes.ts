@@ -36,7 +36,6 @@ import {validatePassword} from '../services/authService';
 import {assertIsError, assertIsErrorWithCode} from '../utils/error';
 import {HttpError} from '../utils/HttpError';
 import cookieParser from 'cookie-parser';
-import {COOKIE_SECURE} from '../utils/csrf';
 
 /**
  * The strategy for authenticating users with an email and password.
@@ -170,7 +169,7 @@ router.use(
     resave: false,
     cookie: {
       maxAge: env.COOKIE_MAX_AGE_SEC * SEC.IN_MS,
-      secure: COOKIE_SECURE, // The cookie will only be sent over HTTPS.
+      secure: env.COOKIE_SECURE, // The cookie will only be sent over HTTPS.
       httpOnly: true, // The cookie cannot be accessed through client-side script.
       sameSite: 'strict', // The cookie will only be sent in a first-party context.
     },

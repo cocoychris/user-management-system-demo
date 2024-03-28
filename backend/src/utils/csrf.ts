@@ -3,19 +3,9 @@
  * This file configures the CSRF protection for the application.
  * @module
  */
-import {NodeEnv, env} from '../globalVars';
+import {env} from '../globalVars';
 import {doubleCsrf} from 'csrf-csrf';
-import {appLogger} from '../utils/logger';
 
-/**
- * The secure flag for the session cookie.
- */
-export const COOKIE_SECURE: boolean = env.NODE_ENV === NodeEnv.PROD;
-if (!COOKIE_SECURE) {
-  appLogger.warn(
-    'Session cookie is not secure. Set NODE_ENV to production to make it secure.'
-  );
-}
 /**
  * Double CSRF protection options
  * @openapi
@@ -49,9 +39,9 @@ export const {
 } = doubleCsrf({
   getSecret: () => env.CSRF_SECRET,
   cookieOptions: {
-    secure: COOKIE_SECURE,
+    secure: env.COOKIE_SECURE,
   },
-  cookieName: COOKIE_SECURE ? undefined : 'x-csrf-token',
+  cookieName: env.COOKIE_SECURE ? undefined : 'x-csrf-token', // The default cookie name "__Host-psifi.x-csrf-token" can only be set on secure cookies.
   getTokenFromRequest: req => {
     return req.headers['x-csrf-token'];
   },
