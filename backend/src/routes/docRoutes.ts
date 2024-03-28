@@ -27,7 +27,12 @@ const options: swaggerJsdoc.Options = {
       description:
         'APIs for user management and authentication. Double CSRF protection is used, therefore, the client must send the CSRF token in both the cookie and the request header for the non-GET requests.',
     },
-    servers: [{url: `${env.FRONTEND_URL}/api/v1`}],
+    servers: [
+      {url: `${env.FRONTEND_URL}/api/v1`},
+      {
+        url: `http://localhost:${env.PORT}/api/v1`,
+      },
+    ],
     tags: [
       {
         name: 'auth',

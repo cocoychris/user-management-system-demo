@@ -15,11 +15,14 @@ import {TokenPurpose, SelectToken, tokens} from '../models/tokenModel';
 import {eq} from 'drizzle-orm';
 import ejs from 'ejs';
 import path from 'path';
+import fs from 'fs';
 
 const VERIFICATION_EMAIL_FILE_PATH = path.join(
   __dirname,
   '../../views/verificationEmail.ejs'
 );
+const LOGO_PATH = path.join(__dirname, '../../assets/ums_logo_90.png');
+const LOGO_BASE_64 = fs.readFileSync(LOGO_PATH, 'base64');
 
 const logger = appLogger.child({module: 'authService'});
 /**
@@ -63,10 +66,20 @@ export async function sendVerificationEmail(
     subject: 'Verify your email',
     text: `Please click the link to verify your email:\n ${verificationUrl}`,
     html: await ejs.renderFile(VERIFICATION_EMAIL_FILE_PATH, {
-      imageUrl: env.FRONTEND_URL + '/backend/assets/ums_logo.svg',
       verificationUrl: verificationUrl,
       homeUrl: env.FRONTEND_URL,
     }),
+    attachments: [
+      {
+        content: LOGO_BASE_64,
+        filename: 'logo.png',
+        type: 'image/png',
+        content_id: 'logo', // There is a bug in the SendGrid library. The key 'contentID' is incorrect. Must be 'content_id'.
+        disposition: 'inline',
+        // Using `any` here in order to use `content_id` instead of `contentId`
+        // eslint-disable-next-line
+      } as any,
+    ],
   });
   logger.info(
     `Verification email sent. User ID: ${user.id}, Email: ${user.email}`

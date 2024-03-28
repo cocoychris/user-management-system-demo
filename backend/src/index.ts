@@ -50,6 +50,7 @@ const limiter = rateLimit({
 const app: Express = express();
 app.set('view engine', 'ejs');
 if (env.USE_CORS) {
+  appLogger.warn(`CORS is enabled for ${env.FRONTEND_URL} only.`);
   app.use(cors(corsOptions));
 }
 app.use(helmet());

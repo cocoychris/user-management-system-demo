@@ -78,7 +78,7 @@ const envSchema = zod.object({
   /**
    * Indicates whether to use CORS.
    */
-  USE_CORS: zod.coerce.boolean(),
+  USE_CORS: zod.string().transform(value => value === 'true'),
   /**
    * The secret for CSRF tokens.
    */

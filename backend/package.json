@@ -3,8 +3,11 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "scripts": {
-    "build": "npm run clean-build & tsc & npm run copy-views",
+    "build": "npm run clean-build & tsc & npm run copy-views & npm run copy-assets",
     "start": "node build/src/index.js",
     "pm2": "pm2 start --name backend build/src/index.js",
     "dev": "nodemon src/index.ts",
@@ -19,7 +22,8 @@
     "pretest": "npm.cmd run compile",
     "posttest": "npm.cmd run lint",
     "clean-build": "rimraf build/",
-    "copy-views": "copyfiles -u 1 views/*.ejs build/views/"
+    "copy-views": "copyfiles -u 1 views/*.ejs build/views/",
+    "copy-assets": "copyfiles -u 1 assets/*.ejs build/assets/"
   },
   "keywords": [],
   "author": "",
