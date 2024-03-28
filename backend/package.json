@@ -23,7 +23,7 @@
     "posttest": "npm.cmd run lint",
     "clean-build": "rimraf build/",
     "copy-views": "copyfiles -u 1 views/*.ejs build/views/",
-    "copy-assets": "copyfiles -u 1 assets/*.ejs build/assets/"
+    "copy-assets": "copyfiles -u 1 assets/* build/assets/"
   },
   "keywords": [],
   "author": "",
