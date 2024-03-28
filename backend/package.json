@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "tsc",
+    "build": "npm run clean-build & tsc & npm run copy-views",
     "start": "node build/src/index.js",
     "pm2": "pm2 start --name backend build/src/index.js",
     "dev": "nodemon src/index.ts",
@@ -17,7 +17,9 @@
     "fix": "gts fix",
     "disabled!prepare": "npm.cmd run compile",
     "pretest": "npm.cmd run compile",
-    "posttest": "npm.cmd run lint"
+    "posttest": "npm.cmd run lint",
+    "clean-build": "rimraf build/",
+    "copy-views": "copyfiles -u 1 views/*.ejs build/views/"
   },
   "keywords": [],
   "author": "",
@@ -61,8 +63,10 @@
     "@types/pg": "^8.11.2",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.6",
+    "copyfiles": "^2.4.1",
     "gts": "^5.2.0",
     "nodemon": "^3.1.0",
+    "rimraf": "^5.0.5",
     "ts-node": "^10.9.2",
     "typedoc": "^0.25.9",
     "typescript": "^5.3.3"
