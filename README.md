@@ -4,8 +4,6 @@
   <p align="center">Developed by Andrash Yang</p>
 </p>
 
-This project serves as the exam submission for my application to the Full Stack Web Developer position at Aha AI Company.
-
 This project is a User Management System that allows users to register, log in, verify their email addresses, manage their profiles, retrieve statistics, and log out.
 
 You can find a live demo of this project at the following link:
@@ -103,6 +101,6 @@ While I understand that this examination primarily focuses on backend developmen
 
 # Thank You
 
-Thank you for taking the time to review my code and documentation. I don't often have the opportunity to have my work peer-reviewed, so I'm genuinely interested and eager to hear your feedback. I'm confident that your insights will help me improve my coding skills and facilitate future collaborations. I look forward to potentially working with you and your team. Thanks again.
+Thank you for taking the time to review my code and documentation. I'm genuinely interested and eager to hear your feedback. I'm confident that your insights will help me improve my coding skills and facilitate future collaborations. I look forward to working with you. Thanks again.
 
 Andrash Yang 2024
