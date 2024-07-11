@@ -1,0 +1,15 @@
+.about-page {
+  max-width: 600px;
+  text-align: left;
+}
+.about-page p {
+  width: 100%;
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+.about-page button {
+  text-align: center;
+}
+.about-page ol {
+  margin: 0 0 10px 0;
+}

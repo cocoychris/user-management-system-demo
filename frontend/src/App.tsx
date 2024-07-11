@@ -11,6 +11,7 @@ import {AuthProvider} from './contexts/AuthContext';
 import {DashboardPage} from './pages/DashboardPage';
 import SignUpPage from './pages/SignUpPage';
 import Redirector from './pages/Redirector';
+import AboutPage from './pages/AboutPage';
 
 export default function App() {
   return (
@@ -19,6 +20,7 @@ export default function App() {
         <Header />
         <Routes>
           <Route element={<AuthLoadingPage />}>
+            <Route path="/about" element={<AboutPage />} />
             <Route element={<Redirector onAuthenticated="/dashboard" />}>
               <Route path="/signup" element={<SignUpPage />} />
               <Route path="/login" element={<LoginPage />} />

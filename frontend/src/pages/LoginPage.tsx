@@ -21,23 +21,30 @@ export function LoginPage() {
     window.location.href = GOOGLE_LOGIN_URL;
   }
   return (
-    <Box className="login-page">
-      <h1>Login</h1>
-      <LoginForm onSubmitSuccess={onSubmitSuccess} />
-      <Divider flexItem>Or</Divider>
-      <Button
-        variant="contained"
-        color="primary"
-        type="button"
-        onClick={onClickedGoogleLogin}
-        disabled={isLoginSuccess}
-      >
-        <img className="google-g-logo" src={GoogleLogo} alt="Google Logo" />
-        Login with Google
-      </Button>
-      <p hidden={isLoginSuccess}>
-        Don't have an account? <Link to={SIGNUP_ROUTE}>Sign up</Link>
+    <>
+      <p>
+        <Link className="about-link" to="/about">
+          Where is this place? 🙄
+        </Link>
       </p>
-    </Box>
+      <Box className="login-page">
+        <h1>Login</h1>
+        <LoginForm onSubmitSuccess={onSubmitSuccess} />
+        <Divider flexItem>Or</Divider>
+        <Button
+          variant="contained"
+          color="primary"
+          type="button"
+          onClick={onClickedGoogleLogin}
+          disabled={isLoginSuccess}
+        >
+          <img className="google-g-logo" src={GoogleLogo} alt="Google Logo" />
+          Login with Google
+        </Button>
+        <p hidden={isLoginSuccess}>
+          Don't have an account? <Link to={SIGNUP_ROUTE}>Sign up</Link>
+        </p>
+      </Box>
+    </>
   );
 }
