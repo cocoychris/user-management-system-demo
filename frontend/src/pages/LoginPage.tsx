@@ -24,7 +24,7 @@ export function LoginPage() {
     <>
       <p>
         <Link className="about-link" to="/about">
-          Where is this place? 🙄
+          What is this place? 🙄
         </Link>
       </p>
       <Box className="login-page">

@@ -7,10 +7,13 @@ import {Link} from 'react-router-dom';
 function AboutPage() {
   return (
     <Box className="about-page">
-      <h1>Where Is This Place? 🤔</h1>
+      <h1>What Is This Place? 🤔</h1>
       <p>
-        Hi, I'm <a href="https://andrash.dev/page/about_andrash">Andrash</a>,
-        the creator of this site. It's designed to showcase my full-stack web
+        Hi, I'm{' '}
+        <a href="https://andrash.dev/page/about_andrash" target="_blank">
+          Andrash
+        </a>
+        , the creator of this site. It's designed to showcase my full-stack web
         development skills, with a focus on backend development. The frontend is
         intentionally simple.
       </p>
@@ -23,7 +26,7 @@ function AboutPage() {
           GitHub repository
         </a>
         . Additionally, explore the{' '}
-        <a href="http://localhost:5173/docs/swagger" target="_blank">
+        <a href="/docs/swagger" target="_blank">
           Swagger documentation
         </a>{' '}
         to see the API design and its comprehensive documentation.
