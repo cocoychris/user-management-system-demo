@@ -22,9 +22,10 @@ Additionally, tools such as [gts (Google TypeScript Style)](https://github.com/g
 
 # Choice of Technologies
 
-The primary technologies were selected based on the mandatory requirements of the exam. However, not all the suggested third-party tools were utilized, as I prefer to maintain a more detailed control over the system, including the frontend.
+This project was created for a job application exam. Therefore, the primary technologies were selected based on the mandatory requirements of the exam. However, not all the suggested third-party tools were utilized, as I prefer to maintain a more detailed control over the system, including the frontend.
 
-I made every effort to adhere to the coding style, implement the API, and establish the app workflow and user experience as closely as possible to the exam's requirements. I hope that my decision not to use all the suggested tools, in an effort to create the best user experience, will not be a deal-breaker.
+# Please note
+ This project is developed for a backend exam. Therefore, the frontend is intentionally kept simple and minimalistic. The primary focus of this project is the backend, which includes the API design, database design, and server-side logic & structure. The frontend is designed to be functional and user-friendly, but it is not intended to be a showcase of frontend development skills.
 
 # Backend
 

@@ -9,11 +9,15 @@ import {assertIsError} from '../utils/error';
 import {SEC} from '../utils/time';
 
 const UPDATE_INTERVAL_SEC = 15;
+const SCREEN_SIZE_BREAKPOINT = 768;
 export default function StatisticsBox() {
   const [statistics, setStatistics] = useState<GetStatistics200Response | null>(
     null
   );
   const [messageProps, setMessageProps] = useState<MessageProps>({});
+  const [orientation, setOrientation] = useState<'horizontal' | 'vertical'>(
+    window.innerWidth > SCREEN_SIZE_BREAKPOINT ? 'horizontal' : 'vertical'
+  );
   useEffect(() => {
     let intervalId: NodeJS.Timeout | null = null;
     const getStatistics = async () => {
@@ -42,21 +46,29 @@ export default function StatisticsBox() {
         });
         setStatistics(null);
         // Stop the interval if there is an error
-        // if (intervalId) {
-        //   clearInterval(intervalId);
-        // }
+        if (intervalId) {
+          clearInterval(intervalId);
+        }
       }
     };
     getStatistics();
     // Update statistics every UPDATE_INTERVAL_SEC seconds
-    intervalId = setInterval(
-      getStatistics,
-      UPDATE_INTERVAL_SEC * SEC.IN_MS
+    intervalId = setInterval(getStatistics, UPDATE_INTERVAL_SEC * SEC.IN_MS);
+
+    // Detect screen size change with media query
+    const mediaQuery = window.matchMedia(
+      `(max-width: ${SCREEN_SIZE_BREAKPOINT}px)`
     );
+    const handleScreenSizeChange = () => {
+      setOrientation(mediaQuery.matches ? 'vertical' : 'horizontal');
+    };
+    mediaQuery.addEventListener('change', handleScreenSizeChange);
+    // Cleanup
     return () => {
       if (intervalId) {
         clearInterval(intervalId);
       }
+      mediaQuery.removeEventListener('change', handleScreenSizeChange);
     };
   }, []);
 
@@ -69,8 +81,8 @@ export default function StatisticsBox() {
   }
   return (
     <Box className="dashboard-statistics-box" direction="column">
-      <div className="statistics-container">
-        <div className="statistics-item">
+      <div className={`statistics-container ${orientation}`}>
+        <div className={`statistics-item ${orientation}`}>
           <h1>Signed Up Users</h1>
           <h2>All Time</h2>
           <div className="statistics-item-value">{statistics.totalUsers}</div>
@@ -79,8 +91,11 @@ export default function StatisticsBox() {
             and password or by using Google OAuth.
           </p>
         </div>
-        <Divider orientation="vertical" flexItem />
-        <div className="statistics-item">
+        <Divider
+          orientation={orientation == 'horizontal' ? 'vertical' : 'horizontal'}
+          flexItem
+        />
+        <div className={`statistics-item ${orientation}`}>
           <h1>Daily Active Users</h1>
           <h2>Today</h2>
           <div className="statistics-item-value">
@@ -92,8 +107,11 @@ export default function StatisticsBox() {
             {new Date(statistics.todayBeginDateTime).toLocaleString()}.
           </p>
         </div>
-        <Divider orientation="vertical" flexItem />
-        <div className="statistics-item">
+        <Divider
+          orientation={orientation == 'horizontal' ? 'vertical' : 'horizontal'}
+          flexItem
+        />
+        <div className={`statistics-item ${orientation}`}>
           <h1>Daily Active Users</h1>
           <h2>This Week</h2>
           <div className="statistics-item-value">
